@@ -136,7 +136,7 @@ async function refresh(){
  const status=document.getElementById('publicLoadStatus');
  status.textContent='Atualizando participantes, VGV e bônus...';
  const [monthlyResult,approvalResult]=await Promise.allSettled([
-  fetch('./monthly.json?revision=20261103-37v2',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('Dados mensais indisponíveis');return r.json()}),
+  fetch('./monthly.json?revision=20261103-attendance-v1',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('Dados mensais indisponíveis');return r.json()}),
   rest('/rest/v1/bmw_x1_adjustments?select=id,person,month,category,points,reason,editor_email,timestamp&order=timestamp.asc')
  ]);
  if(monthlyResult.status==='fulfilled'){
