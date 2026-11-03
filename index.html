@@ -112,7 +112,7 @@ async function rest(path,opts={}){const headers={'apikey':KEY,'Content-Type':'ap
 async function token(){if(!session)return null;if(Date.now()<(session.expires_at||0)*1000-45000)return session.access_token;try{const next=await rest('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:session.refresh_token})});session={...next,expires_at:Math.floor(Date.now()/1000)+next.expires_in};sessionStorage.setItem('bmwx1-auth',JSON.stringify(session));return session.access_token}catch{session=null;admin=false;sessionStorage.removeItem('bmwx1-auth');menu();return null}}
 async function verifyAdmin(){const t=await token();if(!t)return false;const data=await rest('/rest/v1/bmw_x1_admin_allowlist?select=email&limit=1',{headers:{Authorization:'Bearer '+t}});return Array.isArray(data)&&data.length===1}
 function person(name){return people.find(x=>x.name===name)}
-function approved(name,month,category){return changes.filter(x=>x.person===name&&x.month===month&&(!category||x.category===category)).reduce((n,x)=>n+Number(x.points||0),0)}
+function approved(name,month,category){return changes.filter(x=>x.person===name&&(!month||x.month===month)&&(!category||x.category===category)).reduce((n,x)=>n+Number(x.points||0),0)}
 const XP_FACTOR={CAPTADOR:1.4,CONSULTOR:1.2,CLOSER:1};
 function baseXP(p){return Math.round(Number(p.vgv_gross_total||0)*XP_FACTOR[p.role])}
 function ownXP(p){return Math.max(0,baseXP(p)+approved(p.name))}
