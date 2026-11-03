@@ -1,0 +1,20 @@
+{
+  "id": "/BMW-X1/",
+  "name": "BMW X1 — Campeonato de Vendas",
+  "short_name": "BMW X1",
+  "description": "Ranking geral da campanha BMW X1 2026",
+  "start_url": "/BMW-X1/",
+  "scope": "/BMW-X1/",
+  "display": "standalone",
+  "background_color": "#080e18",
+  "theme_color": "#080e18",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
