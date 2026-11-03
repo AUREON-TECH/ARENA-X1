@@ -1,19 +1,24 @@
 {
   "id": "/BMW-X1/",
-  "name": "BMW X1 — Campeonato de Vendas",
+  "name": "BMW X1 — AUREON Championship",
   "short_name": "BMW X1",
-  "description": "Ranking geral da campanha BMW X1 2026",
+  "description": "Campanha de vendas BMW X1 2026",
   "start_url": "/BMW-X1/",
   "scope": "/BMW-X1/",
   "display": "standalone",
-  "background_color": "#080e18",
-  "theme_color": "#080e18",
-  "orientation": "portrait-primary",
+  "background_color": "#09111d",
+  "theme_color": "#0b1527",
   "icons": [
     {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "./bmw-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./bmw-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]
