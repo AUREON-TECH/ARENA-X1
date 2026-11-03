@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "description": "Lancamentos aprovados; cada registro altera XP do profissional no mes e aparece no ranking publico.",
+  "changes": []
+}
