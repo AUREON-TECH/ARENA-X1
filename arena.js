@@ -7,7 +7,7 @@
  const loginTab=document.getElementById('loginTab');
  tabs.insertBefore(tab,loginTab);
  const section=document.createElement('section');section.className='panel view hidden';section.id='arena';
- section.innerHTML='<div class="arena-head"><div><h2>🏟️ Arena BMW X1</h2><p>Desafios, provocações saudáveis e torcida pela BMW. Publicações de até <strong>50 caracteres</strong>.</p></div><div class="arena-subtitle">37 competidores · Acesso aprovado pela gestão</div></div>'+
+ section.innerHTML='<div class="arena-head"><div><h2>🏟️ Arena BMW X1</h2><p>Desafios, provocações saudáveis e torcida pela BMW. Publicações de até <strong>50 caracteres</strong>.</p></div><div class="arena-subtitle">Competidores aprovados · Arena BMW X1</div></div>'+
  '<div id="arenaStatus" class="arena-status" role="status"></div>'+
  '<div id="arenaAccess"><div class="arena-card"><h3>Entre na disputa</h3><p>Crie sua conta com seu e-mail. Depois da confirmação, solicite aprovação para participar.</p>'+
  '<form id="arenaAuthForm"><label>E-mail<input id="arenaEmail" type="email" autocomplete="email" required placeholder="voce@exemplo.com"></label><label>Senha<input id="arenaPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="Sua senha"></label>'+
@@ -21,6 +21,9 @@
  document.head.appendChild(css);
 
  let local=null,user=null,member=null,postCache=[],comments=[],likes=[],poll=null;
+ const managerName=()=>admin?(String(user?.email||session?.user?.email||'').toLowerCase()==='luisaneto@gmail.com'?'LUIS • GESTÃO':'RAPHAEL • GESTÃO'):null;
+ const authorName=()=>admin?managerName():member?.professional;
+ const canInteract=()=>accessGranted&&(admin||member?.status==='approved');
  try{local=JSON.parse(localStorage.getItem('bmw-x1-arena-auth')||'null')}catch{}
  const el=id=>document.getElementById(id);
  el('arenaAccess').classList.add('hidden');el('arenaWaiting').classList.add('hidden');
@@ -50,8 +53,8 @@
   const prof=member?.professional;
   el('arenaMemberInfo').textContent=member?(member.status==='pending'?'Aguardando aprovação de Raphael ou Luis para '+prof+'.':member.status==='rejected'?'Solicitação não aprovada para '+prof+'. Fale com a gestão.':'Seu perfil: '+prof):'Sua conta foi autenticada. Escolha seu nome e solicite aprovação.';
   el('arenaRequestArea').classList.toggle('hidden',!!member);
-  if(allowed)el('arenaIdentity').textContent=admin?'🛡️ Gestão • Raphael / Luis':'✅ '+prof+' · Participante aprovado';
-  el('arenaPostForm').classList.toggle('hidden',member?.status!=='approved');
+  if(allowed)el('arenaIdentity').textContent=admin?'🛡️ '+managerName()+' · Publique, curta e comente':'✅ '+prof+' · Participante aprovado';
+  el('arenaPostForm').classList.toggle('hidden',!canInteract());
   el('arenaLogout').classList.add('hidden');
   el('arenaManage').classList.toggle('hidden',!admin);
  }
@@ -149,32 +152,32 @@
    const postComments=comments.filter(x=>x.post_id===post.id),postLikes=likes.filter(x=>x.post_id===post.id),liked=postLikes.some(x=>x.user_id===user.id),owner=post.user_id===user.id;
    return '<article class="arena-post"><div class="arena-post-head"><strong>'+safe(post.professional)+'</strong><span>'+age(post.created_at)+'</span></div>'+
     '<div class="arena-post-text">'+safe(post.body)+'</div><div class="arena-post-actions">'+
-    (member?.status==='approved'?'<button class="btn small" data-like="'+post.id+'">'+(liked?'❤️ Curtido':'🤍 Curtir')+' · '+postLikes.length+'</button>':'<span>❤️ '+postLikes.length+'</span>')+
+    (canInteract()?'<button class="btn small" data-like="'+post.id+'">'+(liked?'❤️ Curtido':'🤍 Curtir')+' · '+postLikes.length+'</button>':'<span>❤️ '+postLikes.length+'</span>')+
     '<button class="btn small" data-commenttoggle="'+post.id+'">💬 Comentários · '+postComments.length+'</button>'+
     ((owner||admin)?'<button class="btn small red" data-delete="'+post.id+'">Excluir</button>':'')+'</div>'+
     '<div class="arena-comments hidden" id="arenaComments'+post.id+'">'+postComments.map(c=>'<div class="arena-comment"><b>'+safe(c.professional)+':</b> '+safe(c.body)+' <small>'+age(c.created_at)+'</small>'+(c.user_id===user.id||admin?' <button class="btn small red" data-deletecomment="'+c.id+'">Excluir</button>':'')+'</div>').join('')+
-    (member?.status==='approved'?'<form class="arena-comment-form" data-post="'+post.id+'"><input maxlength="50" required placeholder="Comente em até 50 caracteres" aria-label="Comentar"><button class="btn small primary" type="submit">Comentar</button></form>':'')+'</div></article>';
+    (canInteract()?'<form class="arena-comment-form" data-post="'+post.id+'"><input maxlength="50" required placeholder="Comente em até 50 caracteres" aria-label="Comentar"><button class="btn small primary" type="submit">Comentar</button></form>':'')+'</div></article>';
   }).join('')||'<div class="arena-card">Ainda não há mensagens. Publique o primeiro desafio!</div>';
   el('arenaFeed').innerHTML=html;
   el('arenaFeed').querySelectorAll('[data-commenttoggle]').forEach(btn=>btn.onclick=()=>el('arenaComments'+btn.dataset.commenttoggle).classList.toggle('hidden'));
   el('arenaFeed').querySelectorAll('[data-like]').forEach(btn=>btn.onclick=async()=>{
    btn.disabled=true;const pid=Number(btn.dataset.like),liked=likes.some(x=>x.post_id===pid&&x.user_id===user.id);
-   try{if(liked)await api('bmw_x1_likes?post_id=eq.'+pid+'&user_id=eq.'+encodeURIComponent(user.id),{method:'DELETE'});else await api('bmw_x1_likes',{method:'POST',body:JSON.stringify({post_id:pid,user_id:user.id}),headers:{Prefer:'return=minimal'}});await loadFeed()}catch(e){setmsg('Curtida: '+e.message)}finally{btn.disabled=false}
+   try{if(liked)await api('bmw_x1_likes?post_id=eq.'+pid+'&user_id=eq.'+encodeURIComponent(user.id),{method:'DELETE'},admin);else await api('bmw_x1_likes',{method:'POST',body:JSON.stringify({post_id:pid,user_id:user.id}),headers:{Prefer:'return=minimal'}},admin);await loadFeed()}catch(e){setmsg('Curtida: '+e.message)}finally{btn.disabled=false}
   });
-  el('arenaFeed').querySelectorAll('[data-delete]').forEach(btn=>btn.onclick=async()=>{if(!confirm('Excluir esta publicação e os comentários?'))return;try{await api('bmw_x1_posts?id=eq.'+Number(btn.dataset.delete),{method:'DELETE'});await loadFeed()}catch(e){setmsg('Excluir: '+e.message)}});
-  el('arenaFeed').querySelectorAll('[data-deletecomment]').forEach(btn=>btn.onclick=async()=>{try{await api('bmw_x1_comments?id=eq.'+Number(btn.dataset.deletecomment),{method:'DELETE'});await loadFeed()}catch(e){setmsg('Comentário: '+e.message)}});
+  el('arenaFeed').querySelectorAll('[data-delete]').forEach(btn=>btn.onclick=async()=>{if(!confirm('Excluir esta publicação e os comentários?'))return;try{await api('bmw_x1_posts?id=eq.'+Number(btn.dataset.delete),{method:'DELETE'},admin);await loadFeed()}catch(e){setmsg('Excluir: '+e.message)}});
+  el('arenaFeed').querySelectorAll('[data-deletecomment]').forEach(btn=>btn.onclick=async()=>{try{await api('bmw_x1_comments?id=eq.'+Number(btn.dataset.deletecomment),{method:'DELETE'},admin);await loadFeed()}catch(e){setmsg('Comentário: '+e.message)}});
   el('arenaFeed').querySelectorAll('form[data-post]').forEach(form=>form.onsubmit=async e=>{
-   e.preventDefault();const body=form.querySelector('input').value.trim();if(!body||body.length>50)return;
+   e.preventDefault();if(!canInteract())return setmsg('Acesso não autorizado.');const body=form.querySelector('input').value.trim();if(!body||body.length>50)return;
    const button=form.querySelector('button');button.disabled=true;
-   try{await api('bmw_x1_comments',{method:'POST',body:JSON.stringify({post_id:Number(form.dataset.post),user_id:user.id,professional:member.professional,body}),headers:{Prefer:'return=minimal'}});await loadFeed()}catch(err){setmsg('Comentário: '+err.message)}finally{button.disabled=false}
+   try{await api('bmw_x1_comments',{method:'POST',body:JSON.stringify({post_id:Number(form.dataset.post),user_id:user.id,professional:authorName(),body}),headers:{Prefer:'return=minimal'}},admin);await loadFeed()}catch(err){setmsg('Comentário: '+err.message)}finally{button.disabled=false}
   });
  }
  el('arenaPostText').oninput=()=>el('arenaPostCount').textContent=el('arenaPostText').value.length+' / 50';
  el('arenaPostForm').onsubmit=async e=>{
-  e.preventDefault();const body=el('arenaPostText').value.trim();if(!body||body.length>50)return setmsg('Use de 1 a 50 caracteres.');
+  e.preventDefault();if(!canInteract())return setmsg('Acesso não autorizado.');const body=el('arenaPostText').value.trim();if(!body||body.length>50)return setmsg('Use de 1 a 50 caracteres.');
   const button=el('arenaPostForm').querySelector('button');button.disabled=true;
   try{
-   await api('bmw_x1_posts',{method:'POST',body:JSON.stringify({user_id:user.id,professional:member.professional,body}),headers:{Prefer:'return=minimal'}});
+   await api('bmw_x1_posts',{method:'POST',body:JSON.stringify({user_id:user.id,professional:authorName(),body}),headers:{Prefer:'return=minimal'}},admin);
    el('arenaPostText').value='';el('arenaPostCount').textContent='0 / 50';setmsg('Desafio publicado!');await loadFeed();
   }catch(err){setmsg('Não foi possível publicar: '+err.message)}finally{button.disabled=false}
  };
