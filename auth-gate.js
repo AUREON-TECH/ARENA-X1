@@ -64,9 +64,16 @@
  async function enableApp(isAdmin){
   accessGranted=true;admin=isAdmin;
   document.body.classList.add('bmw-authorized');
+  show('bmwGateAuth');
   menu();
-  await refresh();
   nav('ranking');
+  try{
+   await refresh();
+  }catch(err){
+   const node=document.getElementById('publicLoadStatus');
+   if(node)node.textContent='Login confirmado. Não foi possível carregar o ranking agora: '+(err?.message||err)+'. Abra a Arena ou use Atualizar ranking.';
+   // Uma falha de rede no ranking não deve bloquear o login nem a Arena.
+  }
  }
  async function checkSession(){
   if(checking)return;checking=true;
@@ -95,7 +102,7 @@
   }catch(error){
    accessGranted=false;document.body.classList.remove('bmw-authorized');
    show('bmwGateAuth');
-   message('Não foi possível validar o acesso: '+error.message+'. Verifique sua conexão e tente novamente.');
+   message('Não foi possível validar o acesso: '+error.message+'. Se você já entrou antes, use Entrar novamente ou Atualizar status.');
   }finally{checking=false}
  }
  function rateLimit(err){
