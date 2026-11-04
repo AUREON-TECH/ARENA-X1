@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8"><meta name="arena-build" content="hotel-bmw-v30"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0a1423"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="ARENA X1">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icon.svg">
 <title>ARENA X1 · Competição 2026</title>
@@ -303,7 +303,7 @@ document.getElementById('saveBtn').onclick=save;document.getElementById('reloadB
 document.getElementById('installBtn').onclick=()=>{if(window.installPrompt){window.installPrompt.prompt();window.installPrompt=null}else alert('Android: Chrome → menu ⋮ → Instalar app. iPhone: Safari → Compartilhar → Adicionar à Tela de Início.')};
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.installPrompt=e});
 menu();
-if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=28',{updateViaCache:'none'}).then(w=>w.update()).catch(()=>{}));
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=30',{updateViaCache:'none'}).then(w=>w.update()).catch(()=>{}));
 
 </script>
 <script>
