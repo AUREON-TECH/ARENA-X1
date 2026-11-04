@@ -182,7 +182,7 @@ function nav(id){
  if(id==='rules')drawRules();
 }
 function menu(){for(const id of ['management','rules'])document.querySelector('[data-tab="'+id+'"]').classList.toggle('hidden',!admin);document.getElementById('goManagement').classList.toggle('hidden',!admin);document.getElementById('loginTab').classList.toggle('hidden',admin||accessGranted);document.getElementById('logoutBtn').classList.toggle('hidden',!accessGranted);document.querySelectorAll('.bonus-review').forEach(x=>x.classList.toggle('hidden',!admin));}
-async function rest(path,opts={}){const headers={'apikey':KEY,'Content-Type':'application/json',...(opts.headers||{})};const result=await fetch(BASE+path,{...opts,headers,cache:'no-store'});const body=await result.text();let data;try{data=body?JSON.parse(body):null}catch{data=body}if(!result.ok)throw Error((data&&(data.message||data.msg||data.error_description))||'HTTP '+result.status);return data}
+async function rest(path,opts={}){const headers={'apikey':KEY,'Content-Type':'application/json',...(opts.headers||{})};const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),15000);let result;try{result=await fetch(BASE+path,{...opts,headers,cache:'no-store',signal:controller.signal})}catch(error){throw Error(error.name==='AbortError'?'Tempo esgotado ao conectar ao Supabase (15 segundos). Verifique sua conexão e tente novamente.':'Falha de conexão com Supabase: '+error.message)}finally{clearTimeout(timeout)}const body=await result.text();let data;try{data=body?JSON.parse(body):null}catch{data=body}if(!result.ok)throw Error((data&&(data.message||data.msg||data.error_description))||'HTTP '+result.status);return data}
 async function token(){if(!session)return null;if(Date.now()<(session.expires_at||0)*1000-45000)return session.access_token;try{const next=await rest('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:session.refresh_token})});session={...next,expires_at:Math.floor(Date.now()/1000)+next.expires_in};sessionStorage.setItem('bmwx1-auth',JSON.stringify(session));return session.access_token}catch{session=null;admin=false;sessionStorage.removeItem('bmwx1-auth');menu();return null}}
 async function verifyAdmin(){const t=await token();if(!t)return false;const data=await rest('/rest/v1/bmw_x1_admin_allowlist?select=email&limit=1',{headers:{Authorization:'Bearer '+t}});return Array.isArray(data)&&data.length===1}
 function person(name){return people.find(x=>x.name===name)}
@@ -311,7 +311,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <script src='./bonus-breakdown.js'></script>
 <script src='./arena.js?v=arena-management-v17'></script>
 <script src='./rules-cards.js?v=rules3'></script>
-<script src='./auth-gate.js?v=gate-manager-login-v11'></script>
+<script src='./auth-gate.js?v=gate-manager-login-v12'></script>
 
 <script src='./result-social.js?v=social2'></script>
 <script src='./add-professional.js?v=add2'></script>
