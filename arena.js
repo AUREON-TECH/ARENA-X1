@@ -80,7 +80,7 @@
    member=rows?.[0]||null;
    if(!admin&&member?.status!=='approved')throw Error('Conta ainda não aprovada.');
    renderAccess();
-   if(member?.status==='approved'||admin)await loadFeed();
+   if(member?.status==='approved'||admin){await loadFeed();setmsg('✅ Mural carregado. Publique, curta e comente!')}
   }catch(e){setmsg('Acesso: '+e.message);renderAccess()}
  }
  el('arenaAuthForm').onsubmit=async event=>{
