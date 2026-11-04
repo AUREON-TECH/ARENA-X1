@@ -1,7 +1,7 @@
 'use strict';
 (function(){
  const el=id=>document.getElementById(id);
- const message=t=>{const value=t||'';el('bmwGateMessage').textContent=value;const top=el('bmwGateTopMessage');if(top){top.textContent=value;top.style.display=value?'block':'none'}};
+ const message=t=>{const value=t||'';el('bmwGateMessage').textContent=value;el('bmwGateMessage').style.display=value?'block':'none';const top=el('bmwGateTopMessage');if(top){top.textContent=value;top.style.display=value?'block':'none'}};
  const parts=['bmwGateAuth','bmwGateRequest','bmwGatePending'];
  let gateSession=null,user=null,member=null,busy=false,checking=false,revalidating=false,signupBlockUntil=0,signupTicker=null,signupMode=false,signupProfessional='',checkAgain=false;
  const baseHeaders=t=>({Authorization:'Bearer '+t});
@@ -105,7 +105,7 @@
   show('bmwGateAuth');
   menu();
   // Não trocar a aba selecionada quando houver revalidação.
-  if(!alreadyOpen)nav('ranking');
+  if(!alreadyOpen)nav(isAdmin?'management':'ranking');
   try{
    await refresh();
   }catch(err){
