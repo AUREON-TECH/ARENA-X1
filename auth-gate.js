@@ -161,7 +161,7 @@
      message('Conta criada! Selecione seu nome e solicite acesso à gestão.');
      await checkSession();
     }else{
-     message('Cadastro enviado, mas o servidor ainda exige confirmação por e-mail. A gestão precisa desativar Confirm email no Supabase antes de novos cadastros.');
+     message('Cadastro recebido, mas o Supabase não retornou uma sessão. Isso também acontece quando o e-mail já está cadastrado. Volte ao login e tente entrar com sua senha. Se aparecer “Email not confirmed”, confira a configuração Confirm email do projeto correto.');
     }
    }catch(error){rateLimit(error)}
    finally{setBusy(false);if(signupMode&&Date.now()<signupBlockUntil)el('bmwGateEnter').disabled=true}
@@ -178,7 +178,7 @@
    if(/invalid login credentials|invalid credentials/i.test(raw)){
     message('Conta não encontrada ou senha incorreta. Se este é seu primeiro acesso, clique em Criar conta. Depois entre com sua senha.');
    }else if(/email not confirmed/i.test(raw)){
-    message('A confirmação de e-mail ainda está ligada no servidor. A gestão precisa desativar Confirm email no Supabase para liberar o cadastro sem e-mail.');
+    message('Esta conta ainda está marcada como e-mail não confirmado no Supabase. Mesmo após desativar Confirm email, contas criadas anteriormente podem continuar sem confirmação. Peça à gestão para verificar este usuário em Authentication > Users.');
    }else{
     message('Não foi possível entrar: '+raw);
    }
