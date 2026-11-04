@@ -24,7 +24,7 @@
   }
   const find=id=>ruleData.find(x=>x.id===id);
   const general=find('geral'),roles=[['captador','cap','🔵 CAPTAÇÃO'],['consultor','con','🟣 CONSULTORIA'],['closer','clo','🟡 CLOSER']];
-  body.innerHTML='<div class="rules-intro"><div><h3>🏆 Regulamento BMW X1</h3><p>De 1º de julho a 31 de dezembro de 2026 · 37 profissionais</p></div><span class="tag">🔒 Área exclusiva da gestão</span></div>'+
+  body.innerHTML='<div class="rules-intro"><div><h3>🏆 Regulamento BMW X1</h3><p>De 1º de julho a 31 de dezembro de 2026 · '+people.length+' profissionais</p></div><span class="tag">🔒 Área exclusiva da gestão</span></div>'+
     (general?render(general,'general','📌 REGRAS GERAIS'):'')+
     '<div class="rules-cards">'+roles.map(item=>{const rule=find(item[0]);return rule?render(rule,item[1],item[2]):''}).join('')+'</div>'+
     '<p class="rules-private-note">Informações consultadas após login autorizado de Raphael ou Luis. A gestão é responsável pelas correções e auditorias.</p>';
