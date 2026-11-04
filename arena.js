@@ -16,6 +16,7 @@
  '<div id="arenaFeedArea" class="hidden"><div class="arena-compose"><div class="arena-authrow"><span id="arenaIdentity"></span><div class="arena-buttons"><button class="btn small" id="arenaReload" type="button">↻ Atualizar</button><button class="btn small" id="arenaLogout" type="button">Sair</button></div></div><form id="arenaPostForm"><textarea id="arenaPostText" rows="2" maxlength="50" placeholder="Seu desafio em até 50 caracteres..." required></textarea><div class="arena-buttons"><span id="arenaPostCount">0 / 50</span><button class="btn primary" type="submit">Publicar desafio</button></div></form></div><div id="arenaFeed"></div></div>'+
  '<div id="arenaManage" class="arena-card hidden"><div class="arena-authrow"><h3>Solicitações de acesso</h3><button class="btn small" id="arenaReviewReload">Atualizar solicitações</button></div><div id="arenaReviewList"></div><h3 style="margin-top:20px">Moderação de mensagens</h3><div id="arenaModPosts"></div><p class="arena-hint">Só aprove o perfil após confirmar que a pessoa corresponde ao profissional indicado. O banco impede dois perfis aprovados com o mesmo nome.</p></div>';
  document.querySelector('.nav').insertAdjacentElement('afterend',section);
+ el('arenaAccess').remove();el('arenaWaiting').remove();
  const css=document.createElement('style');
  css.textContent='.arena-head{display:flex;justify-content:space-between;gap:15px;align-items:start;margin-bottom:12px}.arena-head p,.arena-hint{color:#adc0d8;font-size:12px;line-height:1.5}.arena-subtitle{font-size:12px;color:#f1cd84}.arena-card,.arena-compose,.arena-post{border:1px solid #39536f;border-radius:13px;background:#172940;padding:14px;margin:12px 0}.arena-card h3,.arena-post h3{margin:0 0 9px}.arena-card label{display:flex;flex-direction:column;gap:7px;margin:12px 0;color:#bacde4;font-size:12px;font-weight:650}.arena-card input,.arena-card select,.arena-compose textarea,.arena-comments input{width:100%;padding:10px;background:#0b192b;color:#f3f6fc;border:1px solid #4e6581;border-radius:9px}.arena-buttons{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.arena-authrow{display:flex;justify-content:space-between;align-items:center;gap:9px;flex-wrap:wrap}.arena-status{font-size:12px;color:#f1cd84;min-height:16px}.arena-post-text{font-size:18px;font-weight:700;overflow-wrap:anywhere;margin:12px 0}.arena-post-head{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#a9bfdc;font-size:12px}.arena-post-head strong{color:#f4d18e}.arena-post-actions{display:flex;flex-wrap:wrap;gap:9px}.arena-post-actions .btn{padding:6px 10px}.arena-comment{border-top:1px solid #344b64;padding:7px 0;font-size:12px}.arena-comment b{color:#e4c580}.arena-comments{margin-top:10px}.arena-comment-form{display:flex;gap:8px;margin-top:8px}.arena-comment-form input{min-width:0;flex:1}.arena-review-row{border-top:1px solid #3b526a;padding:10px 0}.arena-review-row strong{display:block}.arena-review-row small{display:block;color:#b5c9e0;margin:4px 0 8px}@media(max-width:600px){.arena-head{flex-direction:column}.arena-card,.arena-compose,.arena-post{padding:11px}.arena-post-text{font-size:16px}.arena-comment-form{flex-wrap:wrap}}';
  document.head.appendChild(css);
@@ -37,21 +38,21 @@
   }catch{local=null;user=null;member=null;localStorage.removeItem('bmw-x1-arena-auth');return null}
  }
  async function api(path,opts={},manager=false){
-  const t=manager?(await window.bmwAppToken?.()||await token()):await arenaToken();
-  if(!t)throw Error(manager?'Faça login como gestor na aba Gestão.':'Sua sessão expirou. Entre novamente.');
+  const t=await window.bmwAppToken?.();
+  if(!accessGranted||!t)throw Error('Acesso não liberado. Entre pela tela inicial.');
   return rest('/rest/v1/'+path,{...opts,headers:{Authorization:'Bearer '+t,...(opts.headers||{})}});
  }
  function renderAccess(){
   const allowed=member?.status==='approved'||admin;
-  el('arenaAccess').classList.toggle('hidden',!!user||admin||accessGranted);
-  el('arenaWaiting').classList.toggle('hidden',!user||allowed);
-  el('arenaFeedArea').classList.toggle('hidden',!allowed);
+  el('arenaAccess').classList.add('hidden');
+  el('arenaWaiting').classList.add('hidden');
+  el('arenaFeedArea').classList.toggle('hidden',!accessGranted||!allowed);
   const prof=member?.professional;
   el('arenaMemberInfo').textContent=member?(member.status==='pending'?'Aguardando aprovação de Raphael ou Luis para '+prof+'.':member.status==='rejected'?'Solicitação não aprovada para '+prof+'. Fale com a gestão.':'Seu perfil: '+prof):'Sua conta foi autenticada. Escolha seu nome e solicite aprovação.';
   el('arenaRequestArea').classList.toggle('hidden',!!member);
   if(allowed)el('arenaIdentity').textContent=admin?'🛡️ Gestão • Raphael / Luis':'✅ '+prof+' · Participante aprovado';
   el('arenaPostForm').classList.toggle('hidden',member?.status!=='approved');
-  if(admin)el('arenaLogout').classList.add('hidden');
+  el('arenaLogout').classList.add('hidden');
   el('arenaManage').classList.toggle('hidden',!admin);
  }
  function roster(){
@@ -62,13 +63,14 @@
  }
  async function connect(){
   roster();
-  const t=await arenaToken();
-  if(!t){user=null;member=null;renderAccess();return}
+  const t=await window.bmwAppToken?.();
+  if(!accessGranted||!t){user=null;member=null;renderAccess();return}
   try{
    const u=await rest('/auth/v1/user',{headers:{Authorization:'Bearer '+t}});
    user=u;
    const rows=await api('bmw_x1_members?select=user_id,professional,status,requested_at&user_id=eq.'+encodeURIComponent(u.id));
    member=rows?.[0]||null;
+   if(!admin&&member?.status!=='approved')throw Error('Conta ainda não aprovada.');
    renderAccess();
    if(member?.status==='approved'||admin)await loadFeed();
   }catch(e){setmsg('Acesso: '+e.message);renderAccess()}
@@ -211,8 +213,8 @@
  const previousNav=nav;
  nav=function(id){
   previousNav(id);
-  if(id==='arena'){
-   connect().catch(e=>setmsg(e.message));
+  if(id==='arena'&&accessGranted){
+   connect().catch(e=>setmsg('Não foi possível abrir o mural: '+e.message));
    if(admin)review();
   }
  };
