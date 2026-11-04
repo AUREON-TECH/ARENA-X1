@@ -14,7 +14,7 @@
  '<div class="arena-buttons"><button class="btn primary" type="submit">Entrar</button><button class="btn" id="arenaSignup" type="button">Criar conta</button></div></form><p class="arena-hint">A conta não libera o mural automaticamente. Raphael ou Luis precisa aprovar seu perfil. Nunca compartilhe sua senha.</p></div></div>'+
  '<div id="arenaWaiting" class="arena-card hidden"><h3>Solicitação de acesso</h3><p id="arenaMemberInfo"></p><div id="arenaRequestArea"><label>Selecione seu nome na competição<select id="arenaProfessional"></select></label><button class="btn primary" id="arenaRequest" type="button">Solicitar aprovação</button></div><button class="btn small" id="arenaLeave" type="button">Sair desta conta</button></div>'+
  '<div id="arenaFeedArea" class="hidden"><div class="arena-compose"><div class="arena-authrow"><span id="arenaIdentity"></span><div class="arena-buttons"><button class="btn small" id="arenaReload" type="button">↻ Atualizar</button><button class="btn small" id="arenaLogout" type="button">Sair</button></div></div><form id="arenaPostForm"><textarea id="arenaPostText" rows="2" maxlength="50" placeholder="Seu desafio em até 50 caracteres..." required></textarea><div class="arena-buttons"><span id="arenaPostCount">0 / 50</span><button class="btn primary" type="submit">Publicar desafio</button></div></form></div><div id="arenaFeed"></div></div>'+
- '<div id="arenaManage" class="arena-card hidden"><div class="arena-authrow"><h3>Solicitações de acesso</h3><button class="btn small" id="arenaReviewReload">Atualizar solicitações</button></div><div id="arenaReviewList"></div><p class="arena-hint">Só aprove o perfil após confirmar que a pessoa corresponde ao profissional indicado. O banco impede dois perfis aprovados com o mesmo nome.</p></div>';
+ '<div id="arenaManage" class="arena-card hidden"><div class="arena-authrow"><h3>Solicitações de acesso</h3><button class="btn small" id="arenaReviewReload">Atualizar solicitações</button></div><div id="arenaReviewList"></div><h3 style="margin-top:20px">Moderação de mensagens</h3><div id="arenaModPosts"></div><p class="arena-hint">Só aprove o perfil após confirmar que a pessoa corresponde ao profissional indicado. O banco impede dois perfis aprovados com o mesmo nome.</p></div>';
  document.querySelector('.nav').insertAdjacentElement('afterend',section);
  const css=document.createElement('style');
  css.textContent='.arena-head{display:flex;justify-content:space-between;gap:15px;align-items:start;margin-bottom:12px}.arena-head p,.arena-hint{color:#adc0d8;font-size:12px;line-height:1.5}.arena-subtitle{font-size:12px;color:#f1cd84}.arena-card,.arena-compose,.arena-post{border:1px solid #39536f;border-radius:13px;background:#172940;padding:14px;margin:12px 0}.arena-card h3,.arena-post h3{margin:0 0 9px}.arena-card label{display:flex;flex-direction:column;gap:7px;margin:12px 0;color:#bacde4;font-size:12px;font-weight:650}.arena-card input,.arena-card select,.arena-compose textarea,.arena-comments input{width:100%;padding:10px;background:#0b192b;color:#f3f6fc;border:1px solid #4e6581;border-radius:9px}.arena-buttons{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.arena-authrow{display:flex;justify-content:space-between;align-items:center;gap:9px;flex-wrap:wrap}.arena-status{font-size:12px;color:#f1cd84;min-height:16px}.arena-post-text{font-size:18px;font-weight:700;overflow-wrap:anywhere;margin:12px 0}.arena-post-head{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#a9bfdc;font-size:12px}.arena-post-head strong{color:#f4d18e}.arena-post-actions{display:flex;flex-wrap:wrap;gap:9px}.arena-post-actions .btn{padding:6px 10px}.arena-comment{border-top:1px solid #344b64;padding:7px 0;font-size:12px}.arena-comment b{color:#e4c580}.arena-comments{margin-top:10px}.arena-comment-form{display:flex;gap:8px;margin-top:8px}.arena-comment-form input{min-width:0;flex:1}.arena-review-row{border-top:1px solid #3b526a;padding:10px 0}.arena-review-row strong{display:block}.arena-review-row small{display:block;color:#b5c9e0;margin:4px 0 8px}@media(max-width:600px){.arena-head{flex-direction:column}.arena-card,.arena-compose,.arena-post{padding:11px}.arena-post-text{font-size:16px}.arena-comment-form{flex-wrap:wrap}}';
@@ -164,6 +164,13 @@
      }catch(e){setmsg('Não foi possível aprovar: '+e.message)}finally{row.disabled=false}
     };
    }
+  const recent=await api('bmw_x1_posts?select=id,professional,body,created_at&order=created_at.desc&limit=40',{},true);
+   el('arenaModPosts').innerHTML=(recent||[]).map(post=>'<div class="arena-review-row"><strong>'+safe(post.professional)+'</strong><small>'+safe(post.body)+' · '+age(post.created_at)+'</small><button class="btn small red" data-moderate="'+post.id+'">Remover mensagem</button></div>').join('')||'<p class="arena-hint">Nenhuma publicação encontrada.</p>';
+   el('arenaModPosts').querySelectorAll('[data-moderate]').forEach(button=>button.onclick=async()=>{
+    if(!confirm('Remover esta mensagem e seus comentários?'))return;
+    button.disabled=true;
+    try{await api('bmw_x1_posts?id=eq.'+Number(button.dataset.moderate),{method:'DELETE'},true);await review();if(member?.status==='approved')await loadFeed()}catch(err){setmsg('Moderação: '+err.message)}finally{button.disabled=false}
+   });
   }catch(e){el('arenaReviewList').textContent='Verificação de solicitações: '+e.message}
  }
  el('arenaReviewReload').onclick=review;
@@ -176,6 +183,7 @@
   }
  };
  tab.onclick=()=>nav('arena');
+ setInterval(()=>{if(el('arena').classList.contains('hidden')||member?.status!=='approved')return;if(document.activeElement===el('arenaPostText')||document.activeElement?.closest('.arena-comment-form'))return;loadFeed().catch(()=>{})},30000);
  // Também mostrar a aprovação de acesso dentro da Gestão, sem mudar as permissões existentes.
  const approveShortcut=document.createElement('button');approveShortcut.className='btn small';approveShortcut.type='button';approveShortcut.textContent='👥 Aprovar contas do mural';
  approveShortcut.onclick=()=>nav('arena');
