@@ -3,14 +3,30 @@
  const el=id=>document.getElementById(id);
  const message=t=>{el('bmwGateMessage').textContent=t||''};
  const parts=['bmwGateAuth','bmwGateRequest','bmwGatePending'];
- let gateSession=null,user=null,member=null,busy=false,checking=false,revalidating=false,signupBlockUntil=0,signupTicker=null,signupMode=false;
+ let gateSession=null,user=null,member=null,busy=false,checking=false,revalidating=false,signupBlockUntil=0,signupTicker=null,signupMode=false,signupProfessional='';
  const baseHeaders=t=>({Authorization:'Bearer '+t});
  const show=(id)=>{for(const x of parts)el(x).style.display=x===id?'block':'none'};
  const setBusy=value=>{busy=value;for(const id of ['bmwGateEnter','bmwGateSignup','bmwGateReset','bmwGateRequestButton','bmwGateRecheck'])el(id).disabled=value};
+ const signupField=document.createElement('div');
+ signupField.id='bmwSignupProfessionalWrap';signupField.style.display='none';
+ signupField.innerHTML='<label for="bmwSignupProfessional">Seu nome na equipe</label><select id="bmwSignupProfessional" style="width:100%;padding:12px;border-radius:9px" required><option value="">Carregando participantes...</option></select>';
+ el('bmwGateConfirmWrap').after(signupField);
+ async function prepareSignupRoster(){
+  const rows=await rest('/rest/v1/bmw_x1_roster?select=professional,role&order=professional.asc');
+  const select=el('bmwSignupProfessional');select.innerHTML='<option value="">Selecione seu nome</option>';
+  for(const p of rows||[]){const option=document.createElement('option');option.value=p.professional;option.textContent=p.professional+' · '+p.role;select.appendChild(option)}
+  if(!rows?.length)throw Error('Não foi possível carregar a lista de profissionais.');
+ }
+ async function submitPendingRequest(t,identity,professional){
+  await rest('/rest/v1/bmw_x1_members',{method:'POST',headers:{...baseHeaders(t),Prefer:'return=minimal'},body:JSON.stringify({user_id:identity.id,requester_email:String(identity.email||'').toLowerCase(),professional,status:'pending'})});
+ }
  function setSignupMode(active){
   if(busy)return;
   signupMode=active;
   el('bmwGateConfirmWrap').style.display=active?'block':'none';
+  signupField.style.display=active?'block':'none';
+  el('bmwSignupProfessional').required=active;
+  if(active)prepareSignupRoster().catch(e=>message('Não foi possível carregar os profissionais: '+e.message));
   el('bmwGateConfirm').required=active;
   el('bmwGatePassword').autocomplete=active?'new-password':'current-password';
   el('bmwGateEnter').textContent=active?'Criar minha conta':'Entrar';
@@ -150,6 +166,8 @@
   const email=el('bmwGateEmail').value.trim().toLowerCase(),password=el('bmwGatePassword').value;
   if(signupMode){
    if(Date.now()<signupBlockUntil){rateLimit(new Error('For security purposes, you can only request this after '+Math.ceil((signupBlockUntil-Date.now())/1000)+' seconds.'));return}
+   signupProfessional=el('bmwSignupProfessional').value;
+   if(!signupProfessional){message('Selecione seu nome na equipe para solicitar aprovação.');return}
    if(password.length<8||password!==el('bmwGateConfirm').value){message(password.length<8?'A senha precisa ter pelo menos oito caracteres.':'As duas senhas estão diferentes. Digite novamente.');return}
    setBusy(true);message('Criando sua conta, confira a mensagem aqui...');
    try{
@@ -158,8 +176,17 @@
     signupMode=false;setBusy(false);setSignupMode(false);
     if(created?.access_token&&created?.refresh_token){
      storeAuth(created,false);
-     message('Conta criada! Selecione seu nome e solicite acesso à gestão.');
-     await checkSession();
+     try{
+      const identity=await rest('/auth/v1/user',{headers:baseHeaders(created.access_token)});
+      if(!identity?.id)throw Error('Identidade não confirmada.');
+      await submitPendingRequest(created.access_token,identity,signupProfessional);
+      member={professional:signupProfessional,status:'pending'};
+      pendingScreen();
+      message('Cadastro enviado para aprovação dos administradores. Nenhum e-mail de confirmação é necessário.');
+     }catch(requestError){
+      message('Conta criada, mas o pedido ainda não foi registrado: '+requestError.message+'. Entre com sua senha para concluir a solicitação.');
+      await checkSession();
+     }
     }else{
      message('Cadastro recebido, mas o Supabase não retornou uma sessão. Isso também acontece quando o e-mail já está cadastrado. Volte ao login e tente entrar com sua senha. Se aparecer “Email not confirmed”, confira a configuração Confirm email do projeto correto.');
     }
