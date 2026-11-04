@@ -277,6 +277,8 @@
  async function review(){
   if(!admin){el('arenaManage').classList.add('hidden');return}
   el('arenaManage').classList.remove('hidden');
+  el('arenaManage').open=true;
+  el('arenaReviewList').textContent='Atualizando solicitações...';
   try{
    const rows=await api('bmw_x1_members?select=user_id,professional,status,requested_at,requester_email&order=requested_at.desc&limit=100',{},true);
    const pending=rows.filter(x=>x.status==='pending'),approved=rows.filter(x=>x.status==='approved');
@@ -295,14 +297,15 @@
      }catch(e){setmsg('Não foi possível aprovar: '+e.message)}finally{row.disabled=false}
     };
    }
-  const recent=await api('bmw_x1_posts?select=id,professional,body,created_at&order=created_at.desc&limit=40',{},true);
+  let recent=[];
+  try{recent=await api('bmw_x1_posts?select=id,professional,body,created_at&order=created_at.desc&limit=40',{},true)}catch(e){el('arenaModPosts').textContent='Moderação indisponível: '+e.message;return}
    el('arenaModPosts').innerHTML=(recent||[]).map(post=>'<div class="arena-review-row"><strong>'+safe(post.professional)+'</strong><small>'+safe(post.body)+' · '+age(post.created_at)+'</small><button class="btn small red" data-moderate="'+post.id+'">Remover mensagem</button></div>').join('')||'<p class="arena-hint">Nenhuma publicação encontrada.</p>';
    el('arenaModPosts').querySelectorAll('[data-moderate]').forEach(button=>button.onclick=async()=>{
     if(!confirm('Remover esta mensagem e seus comentários?'))return;
     button.disabled=true;
     try{await api('bmw_x1_posts?id=eq.'+Number(button.dataset.moderate),{method:'DELETE'},true);await review();if(member?.status==='approved')await loadFeed()}catch(err){setmsg('Moderação: '+err.message)}finally{button.disabled=false}
    });
-  }catch(e){el('arenaReviewList').textContent='Verificação de solicitações: '+e.message}
+  }catch(e){el('arenaReviewList').textContent='Não foi possível carregar aprovações: '+e.message}
  }
  el('arenaReviewReload').onclick=review;
  window.bmwArenaOpen=function(){
@@ -339,6 +342,7 @@
    if(!el('arenaReviewList').textContent.trim())el('arenaReviewList').textContent='Carregando solicitações...';
    review().catch(e=>{el('arenaReviewList').textContent='Erro ao carregar aprovações: '+e.message;});
   };
+  window.bmwArenaRefreshApprovals=refreshApprovals;
   document.querySelectorAll('[data-tab="management"]').forEach(b=>b.addEventListener('click',()=>setTimeout(refreshApprovals,0)));
   setTimeout(refreshApprovals,500);
   setInterval(refreshApprovals,60000);
