@@ -58,6 +58,18 @@ table{border-collapse:collapse;width:100%}th,td{border-bottom:1px solid #30415a;
 
 .rules-card{padding:16px;margin:10px 0;border:1px solid #38526e;border-radius:12px;background:#182b46}.rules-card h3{margin:0 0 10px;font-size:16px}.rules-card p{white-space:pre-line;color:#cfe0f7;font-size:13px;line-height:1.7;margin:0}.bonus-entry .bonus-review.hidden{display:none!important}.auth-tag{font-size:12px;color:#b4e2c9}
 .podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:9px 0 13px}.podium-item{background:#182a44;border:1px solid #385471;border-radius:12px;padding:12px;min-width:0}.podium-item strong{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.podium-item small{display:block;font-size:11px;color:#a7bcdb;margin-top:3px}.podium-item b{display:block;color:#e8c578;margin-top:5px;font-size:15px}.podium-item .podium-rank{font-size:18px;font-weight:900;margin-bottom:4px}@media(max-width:670px){.podium{grid-template-columns:1fr}.podium-item{padding:9px}.podium-item strong{font-size:12px}}
+
+/* Interface estável em celular e notebook */
+html{scrollbar-gutter:stable}body{overflow-x:hidden}
+.wrap,.panel,.bmw-gate-card{box-sizing:border-box}
+.nav{position:relative;align-items:center;row-gap:10px}
+.nav .btn{touch-action:manipulation;min-height:42px;white-space:nowrap}
+.view{min-width:0}
+#arena:not(.hidden){min-height:320px}
+.bmw-gate-card{overflow:hidden}
+.bmw-gate-photo{display:block;aspect-ratio:16/9!important;object-position:center 48%;background:#0a1524;max-height:none!important}
+.photo img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;object-position:center 48%;background:#101a2a}
+@media(max-width:680px){html{scrollbar-gutter:auto}.nav{gap:7px}.nav .btn{font-size:12px;padding:10px 11px}.wrap{padding:12px 10px 48px}.panel{padding:13px}#bmwGate{padding:10px}.bmw-gate-card{padding:16px}.bmw-gate-photo{margin:8px 0 14px}}
 </style>
 </head><body>
 <style>
