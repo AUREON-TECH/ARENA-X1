@@ -2,10 +2,12 @@
 (function(){
  const tabs=document.querySelector('.nav');
  if(!tabs)return;
- const tab=document.createElement('button');
- tab.className='btn';tab.dataset.tab='arena';tab.textContent='🏟️ Arena • Mural';
- const loginTab=document.getElementById('loginTab');
- tabs.insertBefore(tab,loginTab);
+ const tab=document.getElementById('arenaTab')||document.createElement('button');
+ if(!tab.parentElement){
+  tab.className='btn';tab.dataset.tab='arena';tab.textContent='🏟️ Arena • Mural';
+  const loginTab=document.getElementById('loginTab');
+  tabs.insertBefore(tab,loginTab);
+ }
  const section=document.createElement('section');section.className='panel view hidden';section.id='arena';
  section.innerHTML='<div class="arena-head"><div><h2>🏟️ Arena BMW X1</h2><p>Desafios, provocações saudáveis e torcida pela BMW. Publicações de até <strong>50 caracteres</strong>.</p></div><div class="arena-subtitle">Competidores aprovados · Arena BMW X1</div></div>'+
  '<div id="arenaStatus" class="arena-status" role="status"></div>'+
