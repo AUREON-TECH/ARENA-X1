@@ -42,7 +42,7 @@
    if(compose)compose.style.display=view==='highlights'?'none':'';
    if(toolbar)toolbar.style.display=view==='highlights'?'none':'';
    if(feed)feed.style.display=view==='highlights'?'none':'';
-   if(typeof drawFeed==='function')drawFeed();
+   if(window.bmwArenaReadyForTabs&&typeof drawFeed==='function')drawFeed();
    const title=feedArea.querySelector('.arena-compose-title');if(title)title.textContent=view==='chat'?'Mensagem para o grupo': 'Compartilhe uma conquista com a Arena';
    const field=document.getElementById('arenaPostText');if(field)field.placeholder=view==='chat'?'Escreva para os competidores...':'Publique sua conquista, meta ou desafio...';
   }
@@ -232,6 +232,7 @@
    api('bmw_x1_reactions?select=post_id,user_id,emoji&limit=2000',{},admin)
   ]);
   postCache=p||[];comments=c||[];likes=l||[];reactions=r||[];
+  window.bmwArenaReadyForTabs=true;
   drawFeed();
  }
  el('arenaFeedSort').onchange=drawFeed;
