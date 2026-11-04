@@ -81,14 +81,37 @@
    await connect();setmsg('Conta conectada. '+(member?.status==='approved'?'Bem-vindo à Arena!':'Solicite ou acompanhe sua aprovação.'));
   }catch(e){setmsg('Não foi possível entrar: '+e.message)}
  };
+ let signupCooldownUntil=0,signupTimer=null;
+ function refreshSignupCooldown(){
+  const remaining=Math.max(0,Math.ceil((signupCooldownUntil-Date.now())/1000)),btn=el('arenaSignup');
+  btn.disabled=remaining>0;
+  btn.textContent=remaining>0?'Aguarde '+remaining+'s':'Criar conta';
+  if(!remaining&&signupTimer){clearInterval(signupTimer);signupTimer=null}
+ }
+ function handleSignupError(err){
+  const message=String(err?.message||err||'');
+  const seconds=message.match(/(?:after|in)\s+(\d+)\s*seconds?/i)||message.match(/(\d+)\s*segundos?/i);
+  if(/security purposes|rate.limit|too many requests|limite.*tentativa|429/i.test(message)){
+   const cooldown=seconds?Number(seconds[1]):60;
+   signupCooldownUntil=Date.now()+Math.max(1,cooldown)*1000;
+   refreshSignupCooldown();
+   if(!signupTimer)signupTimer=setInterval(refreshSignupCooldown,1000);
+   setmsg('Por segurança, o cadastro está temporariamente bloqueado. Aguarde '+cooldown+' segundos antes de tentar novamente. Se já criou a conta, confira seu e-mail ou use Entrar.');
+  }else{
+   setmsg('Não foi possível criar a conta: '+message);
+  }
+ }
  el('arenaSignup').onclick=async()=>{
+  if(Date.now()<signupCooldownUntil){refreshSignupCooldown();return}
+  const btn=el('arenaSignup');btn.disabled=true;
   const email=el('arenaEmail').value.trim().toLowerCase(),password=el('arenaPassword').value;
-  if(!email||password.length<8){setmsg('Informe e-mail e senha com pelo menos 8 caracteres.');return}
+  if(!email||password.length<8){setmsg('Informe um e-mail válido e senha com pelo menos 8 caracteres.');btn.disabled=false;return}
   try{
+   setmsg('Enviando cadastro...');
    await rest('/auth/v1/signup',{method:'POST',body:JSON.stringify({email,password})});
    el('arenaPassword').value='';
-   setmsg('Cadastro solicitado. Confira seu e-mail, confirme a conta e depois entre para pedir aprovação.');
-  }catch(e){setmsg('Não foi possível cadastrar: '+e.message)}
+   setmsg('Solicitação recebida. Se a conta for nova, confirme pelo e-mail recebido; depois use Entrar para solicitar aprovação. Não clique novamente em Criar conta.');
+  }catch(e){handleSignupError(e)}finally{if(Date.now()>=signupCooldownUntil)btn.disabled=false}
  };
  el('arenaRecover').onclick=async()=>{
   const email=el('arenaEmail').value.trim().toLowerCase();
