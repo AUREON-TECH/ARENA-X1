@@ -167,6 +167,8 @@
  el('bmwGateForm').onsubmit=async e=>{
   e.preventDefault();if(busy)return;
   const email=el('bmwGateEmail').value.trim().toLowerCase(),password=el('bmwGatePassword').value;
+  if(!email||!password){message('Preencha seu e-mail e sua senha.');return}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){message('Digite um e-mail válido.');return}
   if(signupMode){
    if(Date.now()<signupBlockUntil){rateLimit(new Error('For security purposes, you can only request this after '+Math.ceil((signupBlockUntil-Date.now())/1000)+' seconds.'));return}
    signupProfessional=el('bmwSignupProfessional').value;
