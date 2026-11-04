@@ -288,6 +288,6 @@
   checkSession();
  }else{
   show('bmwGateAuth');
-  message('Acesso restrito a profissionais aprovados e gestores.');
+  message('');
  }
 })();
