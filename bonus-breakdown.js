@@ -13,8 +13,10 @@
     const th=document.createElement('th');th.className='num';th.textContent=label;existing.parentNode.insertBefore(th,old[9]);
   }
   heading.querySelector('th:nth-last-child(2)').textContent='EQUIPARAÇÃO';
+  heading.lastElementChild.textContent='XP TOTAL GERAL';
+  heading.lastElementChild.title='Soma final: VGV + presença + pontualidade + TOP + renda + casais + eficiência + entrada validada + ajustes + equiparação';
   const style=document.createElement('style');
-  style.textContent='.ranking-table{min-width:1630px}.ranking-table td.num{white-space:nowrap;font-variant-numeric:tabular-nums}.ranking-table th{font-size:11px}.bonus-breakdown{margin:14px 0}.bonus-breakdown strong{color:#edc476}.bonus-breakdown .month-item{padding:7px 10px;border-bottom:1px solid #364b65}.bonus-breakdown summary{cursor:pointer;padding:10px;font-weight:700}';
+  style.textContent='.ranking-table{min-width:1630px;border-collapse:separate;border-spacing:0}.ranking-table td.num{white-space:nowrap;font-variant-numeric:tabular-nums}.ranking-table th{font-size:11px}.ranking-table th:last-child,.ranking-table td:last-child{position:sticky;right:0;z-index:3;min-width:154px;width:154px;text-align:right;background:#172943!important;color:#ffdb8b;font-weight:900;box-shadow:-8px 0 14px rgba(4,12,25,.55);border-left:2px solid #d4ab64}.ranking-table th:last-child{z-index:5;background:#253953!important;color:#ffdf9d}.ranking-table tr:hover td:last-child{background:#243d58!important}.ranking-table td:last-child{font-size:15px}.bonus-breakdown{margin:14px 0}.bonus-breakdown strong{color:#edc476}.bonus-breakdown .month-item{padding:7px 10px;border-bottom:1px solid #364b65}.bonus-breakdown summary{cursor:pointer;padding:10px;font-weight:700}@media(max-width:650px){.ranking-table td:last-child,.ranking-table th:last-child{min-width:126px;width:126px;padding:10px 6px;font-size:12px}}';
   document.head.appendChild(style);
 
   function manualEntrada(p,month){
