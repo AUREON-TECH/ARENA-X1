@@ -1,8 +1,8 @@
 {
   "id": "/BMW-X1/",
-  "name": "BMW X1 — AUREON Championship",
-  "short_name": "BMW X1",
-  "description": "Campanha de vendas BMW X1 2026",
+  "name": "ARENA X1 — Competição BMW X1",
+  "short_name": "ARENA X1",
+  "description": "ARENA X1: ranking, desempenho, desafios e comunidade da competição pelo prêmio BMW X1.",
   "start_url": "/BMW-X1/",
   "scope": "/BMW-X1/",
   "display": "standalone",
