@@ -59,7 +59,42 @@ table{border-collapse:collapse;width:100%}th,td{border-bottom:1px solid #30415a;
 .rules-card{padding:16px;margin:10px 0;border:1px solid #38526e;border-radius:12px;background:#182b46}.rules-card h3{margin:0 0 10px;font-size:16px}.rules-card p{white-space:pre-line;color:#cfe0f7;font-size:13px;line-height:1.7;margin:0}.bonus-entry .bonus-review.hidden{display:none!important}.auth-tag{font-size:12px;color:#b4e2c9}
 .podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:9px 0 13px}.podium-item{background:#182a44;border:1px solid #385471;border-radius:12px;padding:12px;min-width:0}.podium-item strong{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.podium-item small{display:block;font-size:11px;color:#a7bcdb;margin-top:3px}.podium-item b{display:block;color:#e8c578;margin-top:5px;font-size:15px}.podium-item .podium-rank{font-size:18px;font-weight:900;margin-bottom:4px}@media(max-width:670px){.podium{grid-template-columns:1fr}.podium-item{padding:9px}.podium-item strong{font-size:12px}}
 </style>
-</head><body><div class="wrap">
+</head><body>
+<style>
+body:not(.bmw-authorized) .wrap{display:none!important}
+body.bmw-authorized #bmwGate{display:none!important}
+#bmwGate{min-height:100vh;background:radial-gradient(ellipse at 75% 5%,#193d64 0%,#0a1829 55%,#080f1c 100%);color:#eff5ff;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+.bmw-gate-card{width:100%;max-width:500px;background:#14243a;border:1px solid #3d5879;border-radius:22px;padding:27px;box-shadow:0 26px 70px rgba(0,0,0,.45)}
+.bmw-gate-eyebrow{font-weight:800;color:#e9c277;letter-spacing:2px;font-size:11px}
+.bmw-gate-card h1{margin:8px 0;font-size:30px}.bmw-gate-card p{color:#b8cbe2;font-size:13px;line-height:1.55}
+.bmw-gate-card label{display:block;font-size:12px;font-weight:700;margin-top:14px;color:#c7d8ea}
+.bmw-gate-card input,.bmw-gate-card select{display:block;margin-top:5px;width:100%;background:#0a1729;border:1px solid #516a87;border-radius:10px;color:white;padding:13px;font-size:14px}
+.bmw-gate-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:17px}
+.bmw-gate-btn{padding:11px 15px;border:1px solid #56718e;border-radius:11px;background:#213b58;color:#fff;font-weight:750;cursor:pointer}
+.bmw-gate-btn.primary{background:#f1c576;color:#102032;border-color:#f1c576}
+.bmw-gate-btn:disabled{opacity:.5;cursor:not-allowed}
+#bmwGateMessage{color:#ffd78b;font-size:12px;line-height:1.5;margin-top:12px;min-height:16px}
+#bmwGatePending,#bmwGateRequest{display:none}
+.bmw-gate-photo{width:100%;max-height:180px;object-fit:cover;border-radius:13px;margin:8px 0 13px}
+@media(max-width:560px){#bmwGate{padding:12px}.bmw-gate-card{padding:18px}.bmw-gate-card h1{font-size:25px}}
+</style>
+<div id="bmwGate"><div class="bmw-gate-card">
+<div class="bmw-gate-eyebrow">AUREON CHAMPIONSHIP</div><h1>🏆 BMW X1 2012</h1>
+<img class="bmw-gate-photo" src="./bmw-x1-hero.webp" alt="BMW X1 — prêmio da campanha">
+<div id="bmwGateAuth">
+<p><b>Entre na competição.</b> O ranking, os resultados individuais e a Arena são liberados somente após aprovação de Raphael ou Luis.</p>
+<form id="bmwGateForm"><label for="bmwGateEmail">Seu e-mail</label><input id="bmwGateEmail" type="email" autocomplete="email" placeholder="seuemail@exemplo.com" required>
+<label for="bmwGatePassword">Sua senha</label><input id="bmwGatePassword" type="password" minlength="8" autocomplete="current-password" placeholder="Senha individual" required>
+<div class="bmw-gate-actions"><button class="bmw-gate-btn primary" type="submit" id="bmwGateEnter">Entrar</button><button class="bmw-gate-btn" type="button" id="bmwGateSignup">Criar conta</button><button class="bmw-gate-btn" type="button" id="bmwGateReset">Recuperar senha</button></div></form>
+<p>Quem já possui uma conta de gestor pode entrar usando o e-mail e a senha cadastrados.</p>
+</div>
+<div id="bmwGateRequest"><h2>Solicitar aprovação</h2><p id="bmwGateAccount"></p><label for="bmwGateProfessional">Selecione seu nome na equipe</label><select id="bmwGateProfessional"></select>
+<div class="bmw-gate-actions"><button class="bmw-gate-btn primary" id="bmwGateRequestButton" type="button">Pedir aprovação</button><button class="bmw-gate-btn" id="bmwGateRequestLogout" type="button">Sair</button></div></div>
+<div id="bmwGatePending"><h2 id="bmwGatePendingTitle">Aguardando aprovação</h2><p id="bmwGatePendingText">Raphael ou Luis precisa liberar seu acesso.</p>
+<div class="bmw-gate-actions"><button class="bmw-gate-btn primary" id="bmwGateRecheck" type="button">Atualizar status</button><button class="bmw-gate-btn" id="bmwGatePendingLogout" type="button">Sair</button></div></div>
+<div id="bmwGateMessage" role="status" aria-live="polite">Verificando acesso...</div>
+</div></div>
+<div class="wrap">
 <header><div class="brand"><small>AUREON CHAMPIONSHIP</small><strong>BMW <span class="gold">X1</span></strong></div><div class="top-actions"><span class="date">JUL — DEZ 2026<br>VGV até 02/11/2026</span><button class="btn primary" id="installBtn" type="button">⬇ Instalar</button></div></header>
 <div class="hero"><div><div class="muted">A conquista começa aqui</div><h1>Uma corrida.<br><span class="gold">Uma BMW X1.</span></h1><p>Acompanhe o ranking geral e consulte o resultado mensal de cada profissional, com pontuação comprovada e bônus aprovados pela gestão.</p><span class="pill">🏆 BMW X1 2012</span><span class="pill">👥 37 participantes</span></div><div class="photo"><img src="./bmw-x1-hero.webp" alt="BMW X1 branca"></div></div>
 <div class="stats"><div class="stat"><small>Participantes</small><b id="eligibleCount">37</b><small id="roleCounts" style="display:block;margin-top:5px">23 captação · 9 consultoria · 5 closer</small></div><div class="stat"><small>XP da campanha</small><b>VGV bruto</b></div><div class="stat"><small>Competição</small><b>Jul–Dez 2026</b></div></div>
@@ -106,12 +141,12 @@ const FINAL_DATE='2026-12-31';
 function canFinalize(){const d=new Date();const local=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');return local>=FINAL_DATE}
 const BT={top:'TOP mensal',ticket:'Ticket / renda',casais:'Casais qualificados',presenca:'Presença',pontualidade:'Pontualidade',meeting:'Meeting ministrado',eficiencia:'Eficiência',entrada:'Entrada efetiva',outros:'Outros / correção'};
 const fmt=new Intl.NumberFormat('pt-BR'),money=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
-let people=[],changes=[],session=null,admin=false,ruleData=[],approvalsAvailable=false,lastMonthlyVersion='';
+let people=[],changes=[],session=null,admin=false,ruleData=[],approvalsAvailable=false,lastMonthlyVersion='',accessGranted=false;
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 const norm=x=>String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
 function setStatus(id,txt,bad=false){const el=document.getElementById(id);el.textContent=txt;el.className='status'+(bad?' bad':'')}
-function nav(id){if((id==='rules'||id==='management')&&!admin)id='login';document.querySelectorAll('.view').forEach(v=>v.classList.toggle('hidden',v.id!==id));document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));if(id==='professional')drawPerson();if(id==='ranking')drawRank();if(id==='management'){drawSuggestion();drawAudit();attendanceInfo()}if(id==='rules')drawRules()}
-function menu(){for(const id of ['management','rules'])document.querySelector('[data-tab="'+id+'"]').classList.toggle('hidden',!admin);document.getElementById('goManagement').classList.toggle('hidden',!admin);document.getElementById('loginTab').classList.toggle('hidden',admin);document.getElementById('logoutBtn').classList.toggle('hidden',!admin);document.querySelectorAll('.bonus-review').forEach(x=>x.classList.toggle('hidden',!admin));}
+function nav(id){if(!accessGranted)return;if((id==='rules'||id==='management')&&!admin)return;document.querySelectorAll('.view').forEach(v=>v.classList.toggle('hidden',v.id!==id));document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));if(id==='professional')drawPerson();if(id==='ranking')drawRank();if(id==='management'){drawSuggestion();drawAudit();attendanceInfo()}if(id==='rules')drawRules()}
+function menu(){for(const id of ['management','rules'])document.querySelector('[data-tab="'+id+'"]').classList.toggle('hidden',!admin);document.getElementById('goManagement').classList.toggle('hidden',!admin);document.getElementById('loginTab').classList.toggle('hidden',admin||accessGranted);document.getElementById('logoutBtn').classList.toggle('hidden',!accessGranted);document.querySelectorAll('.bonus-review').forEach(x=>x.classList.toggle('hidden',!admin));}
 async function rest(path,opts={}){const headers={'apikey':KEY,'Content-Type':'application/json',...(opts.headers||{})};const result=await fetch(BASE+path,{...opts,headers,cache:'no-store'});const body=await result.text();let data;try{data=body?JSON.parse(body):null}catch{data=body}if(!result.ok)throw Error((data&&(data.message||data.msg||data.error_description))||'HTTP '+result.status);return data}
 async function token(){if(!session)return null;if(Date.now()<(session.expires_at||0)*1000-45000)return session.access_token;try{const next=await rest('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:session.refresh_token})});session={...next,expires_at:Math.floor(Date.now()/1000)+next.expires_in};sessionStorage.setItem('bmwx1-auth',JSON.stringify(session));return session.access_token}catch{session=null;admin=false;sessionStorage.removeItem('bmwx1-auth');menu();return null}}
 async function verifyAdmin(){const t=await token();if(!t)return false;const data=await rest('/rest/v1/bmw_x1_admin_allowlist?select=email&limit=1',{headers:{Authorization:'Bearer '+t}});return Array.isArray(data)&&data.length===1}
@@ -147,11 +182,14 @@ function drawSuggestion(){if(FINAL_BONUSES.includes(document.getElementById('adm
 function drawAudit(){document.getElementById('auditRows').innerHTML=admin?changes.slice().reverse().slice(0,75).map(x=>'<div class="auditrow"><b>'+esc(x.person)+' • '+esc(x.month)+' • '+fmt.format(x.points)+' XP</b><small>'+esc(BT[x.category]||x.category)+' — '+esc(x.reason)+' — '+esc(x.editor_email||'gestão')+' • '+esc((x.timestamp||'').slice(0,16).replace('T',' '))+'</small></div>').join('')||'<p class="muted">Nenhum ajuste aprovado ou lançado.</p>':''}
 async function drawRules(){if(!admin)return;const el=document.getElementById('rulesBody');try{const t=await token();if(!t)throw Error('Sessão expirada');const data=await rest('/rest/v1/bmw_x1_private_rules?select=id,category,rule_text&order=id.asc',{headers:{Authorization:'Bearer '+t}});ruleData=data;el.innerHTML=data.map(x=>'<article class="rules-card"><h3>'+esc(x.category)+'</h3><p>'+esc(x.rule_text)+'</p></article>').join('')||'Regras indisponíveis.'}catch(e){el.textContent='Não foi possível consultar regras privadas: '+e.message}}
 async function refresh(){
+ if(!accessGranted)throw Error('Acesso não aprovado.');
+ const jwt=await window.bmwAppToken?.();
+ if(!jwt)throw Error('Faça login para carregar a campanha.');
  const status=document.getElementById('publicLoadStatus');
  status.textContent='Atualizando participantes, VGV e bônus...';
  const [monthlyResult,approvalResult]=await Promise.allSettled([
-  fetch('./monthly.json?revision=20261103-top-presenca-automatica-v2',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('Dados mensais indisponíveis');return r.json()}),
-  rest('/rest/v1/bmw_x1_adjustments?select=id,person,month,category,points,reason,editor_email,timestamp&order=timestamp.asc')
+  rest('/rest/v1/bmw_x1_campaign_snapshot?select=payload&id=eq.current',{headers:{Authorization:'Bearer '+jwt}}).then(rows=>{if(!Array.isArray(rows)||!rows[0]?.payload)throw Error('Campanha protegida não disponível');return rows[0].payload}),
+  rest('/rest/v1/bmw_x1_adjustments?select=id,person,month,category,points,reason,editor_email,timestamp&order=timestamp.asc',{headers:{Authorization:'Bearer '+jwt}})
  ]);
  if(monthlyResult.status==='fulfilled'){
    const m=monthlyResult.value;
@@ -198,7 +236,7 @@ async function resendConfirmation(){const email=document.getElementById('loginEm
 async function resetPassword(){const email=document.getElementById('loginEmail').value.trim().toLowerCase();if(!email)return setStatus('loginStatus','Informe seu e-mail primeiro.',true);try{await rest('/auth/v1/recover',{method:'POST',body:JSON.stringify({email})});setStatus('loginStatus','Se a conta existir, receberá instruções para recuperar o acesso.')}catch(e){setStatus('loginStatus','Falha ao solicitar recuperação: '+e.message,true)}}
 async function save(){if(!admin)return;if(!approvalsAvailable){setStatus('adminStatus','Não é seguro aprovar bônus enquanto o histórico de créditos estiver indisponível. Recarregue os registros antes de salvar.',true);return;}const p=document.getElementById('adminPerson').value,m=document.getElementById('adminMonth').value,c=document.getElementById('adminType').value,n=Number(document.getElementById('adminPoints').value),reason=document.getElementById('adminReason').value.trim();if(c==='meeting'){setStatus('adminStatus','Meeting não soma XP neste momento.',true);return;}if(c==='entrada'&&session?.user?.email?.toLowerCase()!=='luisaneto@gmail.com'){setStatus('adminStatus','Entrada efetiva é reservada ao Luis.',true);return;}if(c==='top'&&n>0){setStatus('adminStatus','TOPs já estão creditados automaticamente. Para correções, lance apenas desconto justificado.',true);return;}if(FINAL_BONUSES.includes(c)&&!canFinalize()){setStatus('adminStatus','Esta categoria só poderá receber XP no fechamento de 31/12/2026, após apuração pela gestão.',true);return;}if(!p||!MONTHS.includes(m)||!BT[c]||!Number.isSafeInteger(n)||n===0||Math.abs(n)>100000000||reason.length<10){setStatus('adminStatus','Preencha profissional, mês, categoria, pontos inteiros e justificativa com ao menos 10 caracteres.',true);return}const button=document.getElementById('saveBtn');button.disabled=true;setStatus('adminStatus','Publicando lançamento protegido no banco…');try{const t=await token();if(!t)throw Error('Sessão expirada');await rest('/rest/v1/bmw_x1_adjustments',{method:'POST',headers:{Authorization:'Bearer '+t,Prefer:'return=minimal'},body:JSON.stringify({person:p,month:m,category:c,points:n,reason})});document.getElementById('adminPoints').value='';document.getElementById('adminReason').value='';await refresh();setStatus('adminStatus','Bônus registrado! Ranking atualizado para todos que atualizarem a página.')}catch(e){setStatus('adminStatus','Não foi possível salvar: '+e.message,true)}finally{button.disabled=false}}
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>nav(b.dataset.tab));
-document.getElementById('logoutBtn').onclick=async()=>{const t=await token();if(t)rest('/auth/v1/logout',{method:'POST',headers:{Authorization:'Bearer '+t}}).catch(()=>{});session=null;admin=false;sessionStorage.removeItem('bmwx1-auth');menu();nav('ranking')};
+document.getElementById('logoutBtn').onclick=()=>window.bmwLogout?.();
 document.getElementById('loginForm').onsubmit=e=>{e.preventDefault();login()};
 document.getElementById('signupBtn').onclick=signup;document.getElementById('resendBtn').onclick=resendConfirmation;document.getElementById('resetBtn').onclick=resetPassword;
 document.getElementById('publicRefreshBtn').onclick=async()=>{const btn=document.getElementById('publicRefreshBtn');btn.disabled=true;try{await refresh()}catch(e){console.warn('Atualização indisponível',e)}finally{btn.disabled=false}};
@@ -210,13 +248,12 @@ document.getElementById('suggestBtn').onclick=()=>{if(!approvalsAvailable)return
 document.getElementById('saveBtn').onclick=save;document.getElementById('reloadBtn').onclick=()=>refresh().then(()=>setStatus('adminStatus','Dados recarregados.')).catch(e=>setStatus('adminStatus',e.message,true));
 document.getElementById('installBtn').onclick=()=>{if(window.installPrompt){window.installPrompt.prompt();window.installPrompt=null}else alert('Android: Chrome → menu ⋮ → Instalar app. iPhone: Safari → Compartilhar → Adicionar à Tela de Início.')};
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.installPrompt=e});
-try{session=JSON.parse(sessionStorage.getItem('bmwx1-auth')||'null')}catch{}
-menu();refresh().catch(e=>{document.getElementById('rankRows').innerHTML='<tr><td colspan="7">Não foi possível carregar: '+esc(e.message)+'</td></tr>'});
-if(session)verifyAdmin().then(ok=>{admin=ok;menu();if(!ok){session=null;sessionStorage.removeItem('bmwx1-auth')}}).catch(()=>{admin=false;menu()});
+menu();
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(w=>w.update()).catch(()=>{}));
 
 </script>
 <script src='./bonus-breakdown.js'></script>
 <script src='./arena.js?v=arena4'></script>
 <script src='./rules-cards.js?v=rules2'></script>
+<script src='./auth-gate.js?v=gate1'></script>
 </body></html>
