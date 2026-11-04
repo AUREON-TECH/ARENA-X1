@@ -216,4 +216,5 @@ if(session)verifyAdmin().then(ok=>{admin=ok;menu();if(!ok){session=null;sessionS
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(w=>w.update()).catch(()=>{}));
 
 </script>
+<script src='./bonus-breakdown.js'></script>
 </body></html>
