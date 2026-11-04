@@ -294,10 +294,24 @@ menu();
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(w=>w.update()).catch(()=>{}));
 
 </script>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const form=document.getElementById('bmwGateForm'),btn=document.getElementById('bmwGateEnter'),msg=document.getElementById('bmwGateTopMessage');
+ if(!form||!btn||!msg)return;
+ const report=s=>{msg.textContent=s;msg.style.display='block'};
+ btn.addEventListener('click',()=>{
+  const email=document.getElementById('bmwGateEmail').value.trim(),pass=document.getElementById('bmwGatePassword').value;
+  if(!email||!pass)report('Preencha e-mail e senha.');
+  else if(pass.length<8)report('A senha precisa ter pelo menos 8 caracteres.');
+  else report('Validando acesso... Se permanecer aqui, atualize a página.');
+ });
+ form.addEventListener('invalid',e=>report(e.target.validationMessage||'Verifique os campos.'),true);
+});
+</script>
 <script src='./bonus-breakdown.js'></script>
 <script src='./arena.js?v=arena-management-v17'></script>
 <script src='./rules-cards.js?v=rules3'></script>
-<script src='./auth-gate.js?v=gate-manager-login-v10'></script>
+<script src='./auth-gate.js?v=gate-manager-login-v11'></script>
 
 <script src='./result-social.js?v=social2'></script>
 <script src='./add-professional.js?v=add2'></script>
