@@ -253,7 +253,7 @@
   connect().catch(e=>setmsg('Não foi possível abrir o Mural: '+e.message));
   if(admin)review().catch(e=>setmsg('Aprovações: '+e.message));
  };
- tab.onclick=()=>nav('arena');
+ // O clique da Arena é tratado exclusivamente pela navegação central do aplicativo.
  setInterval(()=>{if(el('arena').classList.contains('hidden')||(member?.status!=='approved'&&!admin))return;if(document.activeElement===el('arenaPostText')||document.activeElement?.closest('.arena-comment-form'))return;loadFeed().catch(()=>{})},30000);
  // Também mostrar a aprovação de acesso dentro da Gestão, sem mudar as permissões existentes.
  const approveShortcut=document.createElement('button');approveShortcut.className='btn small';approveShortcut.type='button';approveShortcut.textContent='👥 Aprovar contas do mural';
