@@ -100,6 +100,11 @@ body.bmw-authorized #bmwGate{display:none!important}
 <div class="stats"><div class="stat"><small>Participantes</small><b id="eligibleCount">—</b><small id="roleCounts" style="display:block;margin-top:5px">Profissionais aprovados na campanha</small></div><div class="stat"><small>XP da campanha</small><b>VGV bruto</b></div><div class="stat"><small>Competição</small><b>Jul–Dez 2026</b></div></div>
 
 <nav class="nav" aria-label="Seções"><button class="btn active" data-tab="ranking">🏁 Ranking geral</button><button class="btn" data-tab="professional">👤 Profissional</button><button class="btn hidden" data-tab="management">⚙️ Gestão</button><button class="btn hidden" data-tab="rules">📋 Regras</button><button class="btn" data-tab="arena" id="arenaTab">🏟️ Arena • Mural</button><button class="btn" data-tab="login" id="loginTab">🔐 Login dos gestores</button><button class="btn hidden" id="logoutBtn">Sair</button></nav>
+<section id="arena" class="panel view hidden" aria-label="Arena BMW X1">
+ <h2>🏟️ Arena BMW X1</h2>
+ <p id="arenaLoading" role="status">Preparando seu Mural... Caso permaneça nesta tela, utilize o botão abaixo.</p>
+ <button class="btn small" type="button" onclick="window.location.reload()">↻ Recarregar Arena</button>
+ </section>
 <section id="ranking" class="panel view">
 <h2>Ranking geral da BMW X1</h2>
 <div class="toolbar"><input id="search" placeholder="Buscar nome..." aria-label="Buscar profissional"><select id="roleFilter" aria-label="Filtrar função"><option value="">Todas as funções</option><option value="CAPTADOR">Captadores</option><option value="CONSULTOR">Consultores</option><option value="CLOSER">Closers</option></select><button class="btn small" id="publicRefreshBtn" type="button">↻ Atualizar ranking</button></div><p class="muted" id="publicLoadStatus" role="status" aria-live="polite" style="margin:3px 0 12px;font-size:12px">Conferindo dados e bônus aprovados...</p><div id="podium" class="podium"></div>
@@ -145,7 +150,25 @@ let people=[],changes=[],session=null,admin=false,ruleData=[],approvalsAvailable
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 const norm=x=>String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
 function setStatus(id,txt,bad=false){const el=document.getElementById(id);el.textContent=txt;el.className='status'+(bad?' bad':'')}
-function nav(id){if(!accessGranted)return;if((id==='rules'||id==='management')&&!admin)return;const view=document.getElementById(id);if(!view){alert('Esta área não terminou de carregar. Atualize o aplicativo e tente novamente.');return;}document.querySelectorAll('.view').forEach(v=>v.classList.toggle('hidden',v.id!==id));document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));if(id==='professional')drawPerson();if(id==='ranking')drawRank();if(id==='management'){drawSuggestion();drawAudit();attendanceInfo()}if(id==='rules')drawRules()}
+function nav(id){
+ if(!accessGranted){const gate=document.getElementById('bmwGateMessage');if(gate)gate.textContent='Entre na sua conta e aguarde a aprovação para acessar a Arena.';return}
+ if((id==='rules'||id==='management')&&!admin)return;
+ const view=document.getElementById(id);
+ if(!view){console.error('Tela não encontrada:',id);return}
+ document.querySelectorAll('.view').forEach(v=>v.classList.toggle('hidden',v.id!==id));
+ document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
+ if(id==='arena'){
+  const status=document.getElementById('arenaStatus')||document.getElementById('arenaLoading');
+  if(status)status.textContent='Abrindo conversas e mensagens...';
+  try{if(typeof window.bmwArenaOpen==='function')window.bmwArenaOpen();else if(status)status.textContent='O módulo do Mural não carregou. Use Recarregar Arena.'}
+  catch(err){console.error('Erro da Arena',err);if(status)status.textContent='Erro ao abrir Arena: '+(err?.message||err)}
+  return;
+ }
+ if(id==='professional')drawPerson();
+ if(id==='ranking')drawRank();
+ if(id==='management'){drawSuggestion();drawAudit();attendanceInfo()}
+ if(id==='rules')drawRules();
+}
 function menu(){for(const id of ['management','rules'])document.querySelector('[data-tab="'+id+'"]').classList.toggle('hidden',!admin);document.getElementById('goManagement').classList.toggle('hidden',!admin);document.getElementById('loginTab').classList.toggle('hidden',admin||accessGranted);document.getElementById('logoutBtn').classList.toggle('hidden',!accessGranted);document.querySelectorAll('.bonus-review').forEach(x=>x.classList.toggle('hidden',!admin));}
 async function rest(path,opts={}){const headers={'apikey':KEY,'Content-Type':'application/json',...(opts.headers||{})};const result=await fetch(BASE+path,{...opts,headers,cache:'no-store'});const body=await result.text();let data;try{data=body?JSON.parse(body):null}catch{data=body}if(!result.ok)throw Error((data&&(data.message||data.msg||data.error_description))||'HTTP '+result.status);return data}
 async function token(){if(!session)return null;if(Date.now()<(session.expires_at||0)*1000-45000)return session.access_token;try{const next=await rest('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:session.refresh_token})});session={...next,expires_at:Math.floor(Date.now()/1000)+next.expires_in};sessionStorage.setItem('bmwx1-auth',JSON.stringify(session));return session.access_token}catch{session=null;admin=false;sessionStorage.removeItem('bmwx1-auth');menu();return null}}
@@ -236,14 +259,13 @@ async function signup(){const email=document.getElementById('loginEmail').value.
 async function resendConfirmation(){const email=document.getElementById('loginEmail').value;const btn=document.getElementById('resendBtn');btn.disabled=true;try{await rest('/auth/v1/resend',{method:'POST',body:JSON.stringify({type:'signup',email})});setStatus('loginStatus','Solicitação enviada. Confira o e-mail de '+email+' e confirme pelo link. Verifique também o spam.')}catch(e){let limit=/security purposes|only request|rate limit|after \d+ seconds/i.test(e.message);setStatus('loginStatus',limit?'O serviço de e-mails está com intervalo de segurança. Confira a caixa de entrada antes de solicitar outro envio.':'Não foi possível reenviar: '+e.message,true)}finally{btn.disabled=false}}
 async function resetPassword(){const email=document.getElementById('loginEmail').value.trim().toLowerCase();if(!email)return setStatus('loginStatus','Informe seu e-mail primeiro.',true);try{await rest('/auth/v1/recover',{method:'POST',body:JSON.stringify({email})});setStatus('loginStatus','Se a conta existir, receberá instruções para recuperar o acesso.')}catch(e){setStatus('loginStatus','Falha ao solicitar recuperação: '+e.message,true)}}
 async function save(){if(!admin)return;if(!approvalsAvailable){setStatus('adminStatus','Não é seguro aprovar bônus enquanto o histórico de créditos estiver indisponível. Recarregue os registros antes de salvar.',true);return;}const p=document.getElementById('adminPerson').value,m=document.getElementById('adminMonth').value,c=document.getElementById('adminType').value,n=Number(document.getElementById('adminPoints').value),reason=document.getElementById('adminReason').value.trim();if(c==='meeting'){setStatus('adminStatus','Meeting não soma XP neste momento.',true);return;}if(c==='entrada'&&session?.user?.email?.toLowerCase()!=='luisaneto@gmail.com'){setStatus('adminStatus','Entrada efetiva é reservada ao Luis.',true);return;}if(c==='top'&&n>0){setStatus('adminStatus','TOPs já estão creditados automaticamente. Para correções, lance apenas desconto justificado.',true);return;}if(FINAL_BONUSES.includes(c)&&!canFinalize()){setStatus('adminStatus','Esta categoria só poderá receber XP no fechamento de 31/12/2026, após apuração pela gestão.',true);return;}if(!p||!MONTHS.includes(m)||!BT[c]||!Number.isSafeInteger(n)||n===0||Math.abs(n)>100000000||reason.length<10){setStatus('adminStatus','Preencha profissional, mês, categoria, pontos inteiros e justificativa com ao menos 10 caracteres.',true);return}const button=document.getElementById('saveBtn');button.disabled=true;setStatus('adminStatus','Publicando lançamento protegido no banco…');try{const t=await token();if(!t)throw Error('Sessão expirada');await rest('/rest/v1/bmw_x1_adjustments',{method:'POST',headers:{Authorization:'Bearer '+t,Prefer:'return=minimal'},body:JSON.stringify({person:p,month:m,category:c,points:n,reason})});document.getElementById('adminPoints').value='';document.getElementById('adminReason').value='';await refresh();setStatus('adminStatus','Bônus registrado! Ranking atualizado para todos que atualizarem a página.')}catch(e){setStatus('adminStatus','Não foi possível salvar: '+e.message,true)}finally{button.disabled=false}}
-document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>nav(b.dataset.tab));
-// Captura os cliques de todas as abas, inclusive as inseridas após o carregamento.
+// Um único controle de navegação para todas as abas, inclusive a Arena.
 document.querySelector('.nav').addEventListener('click',event=>{
- const target=event.target.closest?.('[data-tab]');
- if(!target)return;
- event.preventDefault();event.stopImmediatePropagation();
- try{nav(target.dataset.tab)}catch(error){console.error('Navegação BMW X1',error);alert('Não foi possível abrir esta área. '+(error?.message||error))}
-},true);
+ const tab=event.target.closest?.('[data-tab]');
+ if(!tab)return;
+ event.preventDefault();
+ try{nav(tab.dataset.tab)}catch(err){console.error('Navegação BMW X1',err);const status=document.getElementById('arenaStatus')||document.getElementById('arenaLoading');if(status)status.textContent='Falha ao abrir a tela: '+(err?.message||err)}
+});
 document.getElementById('logoutBtn').onclick=()=>window.bmwLogout?.();
 document.getElementById('loginForm').onsubmit=e=>{e.preventDefault();login()};
 document.getElementById('signupBtn').onclick=signup;document.getElementById('resendBtn').onclick=resendConfirmation;document.getElementById('resetBtn').onclick=resetPassword;
