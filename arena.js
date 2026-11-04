@@ -26,6 +26,31 @@
   managementPanel.open=true;
   managementSection.appendChild(managementPanel);
  }
+
+ // Arena 2.0: chat compacto, publicações e destaques com dados existentes.
+ const feedArea=document.getElementById('arenaFeedArea');
+ if(feedArea){
+  const switcher=document.createElement('div');switcher.className='arena-community-tabs';switcher.setAttribute('role','tablist');switcher.setAttribute('aria-label','Seções da Arena');
+  switcher.innerHTML='<button type="button" class="arena-community-tab active" data-arena-view="chat" role="tab" aria-selected="true">Conversas</button><button type="button" class="arena-community-tab" data-arena-view="posts" role="tab" aria-selected="false">Publicações</button><button type="button" class="arena-community-tab" data-arena-view="highlights" role="tab" aria-selected="false">Destaques</button>';
+  feedArea.prepend(switcher);
+  const note=document.createElement('p');note.className='arena-community-note';note.textContent='Converse com a equipe, compartilhe conquistas e acompanhe os destaques.';switcher.after(note);
+  function switchView(view){
+   feedArea.dataset.communityView=view;
+   switcher.querySelectorAll('[data-arena-view]').forEach(b=>{const active=b.dataset.arenaView===view;b.classList.toggle('active',active);b.setAttribute('aria-selected',String(active))});
+   const spotlight=document.getElementById('arenaSpotlight'),compose=feedArea.querySelector('.arena-compose'),toolbar=feedArea.querySelector('.arena-feed-toolbar'),feed=document.getElementById('arenaFeed');
+   if(spotlight)spotlight.style.display=view==='posts'?'none':'';
+   if(compose)compose.style.display=view==='highlights'?'none':'';
+   if(toolbar)toolbar.style.display=view==='highlights'?'none':'';
+   if(feed)feed.style.display=view==='highlights'?'none':'';
+   const title=feedArea.querySelector('.arena-compose-title');if(title)title.textContent=view==='chat'?'Mensagem para o grupo': 'Compartilhe uma conquista com a Arena';
+   const field=document.getElementById('arenaPostText');if(field)field.placeholder=view==='chat'?'Escreva para os competidores...':'Publique sua conquista, meta ou desafio...';
+  }
+  switcher.addEventListener('click',e=>{const b=e.target.closest('[data-arena-view]');if(b)switchView(b.dataset.arenaView)});
+  switchView('chat');
+ }
+
+ const communityStyle=document.createElement('style');communityStyle.id='arena-community-v20';communityStyle.textContent=`.arena-community-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;padding:5px;background:#0b192b;border:1px solid #2d4561;border-radius:14px;margin:14px 0 5px}.arena-community-tab{border:0;border-radius:10px;padding:12px 8px;color:#a9c2df;background:transparent;font-weight:750;cursor:pointer}.arena-community-tab.active{background:#263d5d;color:#fff;box-shadow:0 2px 12px #0003}.arena-community-note{font-size:12px;color:#a9bfdc;margin:8px 2px 15px}.arena-head h2{margin-bottom:6px}.arena-head p{margin-top:0}.arena-feed-toolbar{margin-top:16px}.arena-compose{border-radius:17px;padding:15px}.arena-compose textarea{border-radius:12px}.arena-post{border-radius:16px}.arena-post-actions{opacity:.95}#arenaFeedArea[data-community-view="chat"] .arena-post{max-width:88%;padding:12px 15px;margin:10px 0;background:#1b344f;border-color:#355777}#arenaFeedArea[data-community-view="chat"] .arena-post:nth-child(even){margin-left:auto;background:#183d52;border-color:#356577}#arenaFeedArea[data-community-view="chat"] .arena-post-text{font-size:15px;font-weight:500;line-height:1.45;margin:7px 0}#arenaFeedArea[data-community-view="chat"] .arena-post-actions{gap:5px}#arenaFeedArea[data-community-view="chat"] .arena-post-actions .btn{font-size:11px;padding:5px 8px}#arenaFeedArea[data-community-view="chat"] .arena-post-head{font-size:11px}#arenaFeedArea[data-community-view="posts"] .arena-post{padding:19px}#arenaFeedArea[data-community-view="posts"] .arena-post-text{font-size:19px}#arenaFeedArea[data-community-view="highlights"] .arena-spotlight{margin-top:15px}@media(max-width:600px){.arena-community-tab{font-size:12px;padding:11px 4px}#arenaFeedArea[data-community-view="chat"] .arena-post{max-width:96%}.arena-head{flex-direction:column}.arena-post-actions .btn{font-size:11px}}`;
+ document.head.appendChild(communityStyle);
  // O painel administrativo nunca deve ser inserido na Arena.
 
  const css=document.createElement('style');
