@@ -9,7 +9,7 @@
   tabs.insertBefore(tab,loginTab);
  }
  const section=document.getElementById('arena')||document.createElement('section');section.className='panel view hidden';section.id='arena';
- section.innerHTML='<div class="arena-head"><div><h2>🏟️ Arena BMW X1</h2><p>Desafios, provocações saudáveis e torcida pela BMW. Publicações de até <strong>50 caracteres</strong>.</p></div><div class="arena-subtitle">Competidores aprovados · Arena BMW X1</div></div>'+
+ section.innerHTML='<div class="arena-head"><div><h2>🏟️ ARENA X1</h2><p>Desafios, provocações saudáveis e torcida pela BMW. Publicações de até <strong>50 caracteres</strong>.</p></div><div class="arena-subtitle">Competidores aprovados · ARENA X1</div></div>'+
  '<div id="arenaStatus" class="arena-status" role="status"></div>'+
  '<div id="arenaAccess"><div class="arena-card"><h3>Entre na disputa</h3><p>Crie uma conta na tela inicial e solicite aprovação. Não é necessário outro login para participar.</p>'+
  '<form id="arenaAuthForm"><label>E-mail<input id="arenaEmail" type="email" autocomplete="email" required placeholder="voce@exemplo.com"></label><label>Senha<input id="arenaPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="Sua senha"></label>'+
