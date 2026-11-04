@@ -31,7 +31,7 @@
   el('bmwGatePassword').autocomplete=active?'new-password':'current-password';
   el('bmwGateEnter').textContent=active?'Criar minha conta':'Entrar';
   el('bmwGateSignup').textContent=active?'Voltar ao login':'Criar conta';
-  el('bmwGateReset').style.display='none';
+  el('bmwGateReset').style.display=active?'none':'inline-block';
   message(active?'Cadastro novo: informe seu e-mail, crie uma senha e confirme-a. Depois clique em Criar minha conta.':'Acesse com seu e-mail e senha já cadastrados.');
  }
  function clearClient(){
