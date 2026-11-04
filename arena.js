@@ -268,7 +268,7 @@
  // Também mostrar a aprovação de acesso dentro da Gestão, sem mudar as permissões existentes.
  const approveShortcut=document.createElement('button');approveShortcut.className='btn small';approveShortcut.type='button';approveShortcut.textContent='👥 Aprovar contas do mural';
  approveShortcut.onclick=()=>{
-  nav('arena');
+  nav('management');
   const panel=el('arenaManage');
   panel.open=true;
   review().catch(e=>setmsg('Aprovações: '+e.message));
