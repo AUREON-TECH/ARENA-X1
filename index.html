@@ -9,9 +9,9 @@
 :root{color-scheme:dark;--bg:#08111d;--panel:#111e31;--panel2:#1b2d45;--line:#30455f;--ink:#f2f5fb;--soft:#adbfda;--gold:#edc476;--green:#82d7b5;--red:#f3a7a7}
 *{box-sizing:border-box}body{background:radial-gradient(ellipse at 54% 0,#203857,#08111d 57%);font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink);margin:0;min-height:100vh}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}
 .wrap{max-width:1210px;margin:auto;padding:17px 17px 70px}
-header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:6px 0 15px;gap:14px}
-.brand small{display:block;letter-spacing:3px;font-size:11px;color:var(--soft)}.brand strong{font-size:29px}.gold{color:var(--gold)}
-.top-actions{display:flex;align-items:center;gap:12px}.date{text-align:right;color:var(--soft);font-size:12px}
+header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;border-bottom:1px solid var(--line);padding:6px 0 15px;gap:14px}
+.brand{grid-column:2;text-align:center;justify-self:center}.brand small{display:block;letter-spacing:3px;font-size:11px;color:var(--soft)}.brand strong{font-size:29px}.gold{color:var(--gold)}
+.top-actions{grid-column:3;justify-self:end;display:flex;align-items:center;gap:12px}.date{text-align:right;color:var(--soft);font-size:12px}
 .btn{border:1px solid #567090;border-radius:11px;padding:10px 15px;background:var(--panel2);color:#fff;font-weight:750}.btn.primary{background:var(--gold);color:#101b28;border-color:var(--gold)}.btn.small{padding:7px 10px;font-size:12px}.btn.red{color:#ffc6c6;border-color:#785b61}
 .hero{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:22px;margin:22px 0}
 .hero h1{font-size:clamp(35px,5.4vw,62px);line-height:1.04;letter-spacing:-2px;margin:7px 0 12px}
@@ -65,8 +65,8 @@ body:not(.bmw-authorized) .wrap{display:none!important}
 body.bmw-authorized #bmwGate{display:none!important}
 #bmwGate{min-height:100vh;background:radial-gradient(ellipse at 75% 5%,#193d64 0%,#0a1829 55%,#080f1c 100%);color:#eff5ff;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
 .bmw-gate-card{width:100%;max-width:500px;background:#14243a;border:1px solid #3d5879;border-radius:22px;padding:27px;box-shadow:0 26px 70px rgba(0,0,0,.45)}
-.bmw-gate-eyebrow{font-weight:800;color:#e9c277;letter-spacing:2px;font-size:11px}
-.bmw-gate-card h1{margin:8px 0;font-size:30px}.bmw-gate-card p{color:#b8cbe2;font-size:13px;line-height:1.55}
+.bmw-gate-eyebrow{font-weight:800;color:#e9c277;letter-spacing:2px;font-size:11px;text-align:center}
+.bmw-gate-card h1{margin:8px 0 15px;font-size:34px;text-align:center;letter-spacing:1px}.bmw-gate-card p{color:#b8cbe2;font-size:13px;line-height:1.55}
 .bmw-gate-card label{display:block;font-size:12px;font-weight:700;margin-top:14px;color:#c7d8ea}
 .bmw-gate-card input,.bmw-gate-card select{display:block;margin-top:5px;width:100%;background:#0a1729;border:1px solid #516a87;border-radius:10px;color:white;padding:13px;font-size:14px}
 .bmw-gate-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:17px}
@@ -76,10 +76,10 @@ body.bmw-authorized #bmwGate{display:none!important}
 #bmwGateMessage{color:#ffd78b;font-size:12px;line-height:1.5;margin-top:12px;min-height:16px}
 #bmwGatePending,#bmwGateRequest{display:none}
 .bmw-gate-photo{width:100%;max-height:180px;object-fit:cover;border-radius:13px;margin:8px 0 13px}
-@media(max-width:560px){#bmwGate{padding:12px}.bmw-gate-card{padding:18px}.bmw-gate-card h1{font-size:25px}}
+@media(max-width:720px){header{grid-template-columns:1fr;justify-items:center}.brand{grid-column:1}.top-actions{grid-column:1;justify-self:center}.date{text-align:center}}@media(max-width:560px){#bmwGate{padding:12px}.bmw-gate-card{padding:18px}.bmw-gate-card h1{font-size:25px}}
 </style>
 <div id="bmwGate"><div class="bmw-gate-card">
-<div class="bmw-gate-eyebrow">AUREON CHAMPIONSHIP</div><h1>🏆 BMW X1 2012</h1>
+<div class="bmw-gate-eyebrow">AUREON CHAMPIONSHIP</div><h1>BMW X1</h1>
 <img class="bmw-gate-photo" src="./bmw-x1-hero.webp" alt="BMW X1 — prêmio da campanha">
 <div id="bmwGateAuth">
 <p><b>Entre na competição.</b> O ranking, os resultados individuais e a Arena são liberados somente após aprovação de Raphael ou Luis.</p>
@@ -96,7 +96,7 @@ body.bmw-authorized #bmwGate{display:none!important}
 </div></div>
 <div class="wrap">
 <header><div class="brand"><small>AUREON CHAMPIONSHIP</small><strong>BMW <span class="gold">X1</span></strong></div><div class="top-actions"><span class="date">JUL — DEZ 2026<br>VGV até 02/11/2026</span><button class="btn primary" id="installBtn" type="button">⬇ Instalar</button></div></header>
-<div class="hero"><div><div class="muted">A conquista começa aqui</div><h1>Uma corrida.<br><span class="gold">Uma BMW X1.</span></h1><p>Acompanhe o ranking geral e consulte o resultado mensal de cada profissional, com pontuação comprovada e bônus aprovados pela gestão.</p><span class="pill">🏆 BMW X1 2012</span><span class="pill">👥 Competição por equipes</span></div><div class="photo"><img src="./bmw-x1-hero.webp" alt="BMW X1 branca"></div></div>
+<div class="hero"><div><div class="muted">A conquista começa aqui</div><h1>Uma corrida.<br><span class="gold">Uma BMW X1.</span></h1><p>Acompanhe o ranking geral e consulte o resultado mensal de cada profissional, com pontuação comprovada e bônus aprovados pela gestão.</p><span class="pill">🏆 BMW X1</span><span class="pill">👥 Competição por equipes</span></div><div class="photo"><img src="./bmw-x1-hero.webp" alt="BMW X1 branca"></div></div>
 <div class="stats"><div class="stat"><small>Participantes</small><b id="eligibleCount">—</b><small id="roleCounts" style="display:block;margin-top:5px">Profissionais aprovados na campanha</small></div><div class="stat"><small>XP da campanha</small><b>VGV bruto</b></div><div class="stat"><small>Competição</small><b>Jul–Dez 2026</b></div></div>
 
 <nav class="nav" aria-label="Seções"><button class="btn active" data-tab="ranking">🏁 Ranking geral</button><button class="btn" data-tab="professional">👤 Profissional</button><button class="btn hidden" data-tab="management">⚙️ Gestão</button><button class="btn hidden" data-tab="rules">📋 Regras</button><button class="btn" data-tab="login" id="loginTab">🔐 Login dos gestores</button><button class="btn hidden" id="logoutBtn">Sair</button></nav>
