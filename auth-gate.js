@@ -3,7 +3,7 @@
  const el=id=>document.getElementById(id);
  const message=t=>{el('bmwGateMessage').textContent=t||''};
  const parts=['bmwGateAuth','bmwGateRequest','bmwGatePending'];
- let gateSession=null,user=null,member=null,busy=false,checking=false,signupBlockUntil=0,signupTicker=null,signupMode=false;
+ let gateSession=null,user=null,member=null,busy=false,checking=false,revalidating=false,signupBlockUntil=0,signupTicker=null,signupMode=false;
  const baseHeaders=t=>({Authorization:'Bearer '+t});
  const show=(id)=>{for(const x of parts)el(x).style.display=x===id?'block':'none'};
  const setBusy=value=>{busy=value;for(const id of ['bmwGateEnter','bmwGateSignup','bmwGateReset','bmwGateRequestButton','bmwGateRecheck'])el(id).disabled=value};
@@ -44,7 +44,14 @@
    const result=await rest('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:gateSession.refresh_token})});
    storeAuth(result,admin);
    return gateSession.access_token;
-  }catch{clearClient();show('bmwGateAuth');message('Sua sessão expirou. Entre novamente.');return null}
+  }catch(error){
+   // Falha de rede não é prova de que a sessão expirou.
+   if(/invalid refresh token|refresh token not found|invalid grant|session not found|jwt expired/i.test(String(error?.message||''))){
+    clearClient();show('bmwGateAuth');message('Sessão encerrada. Faça login novamente.');
+    return null;
+   }
+   throw error;
+  }
  }
  window.bmwAppToken=jwt;
  async function isManager(t){
@@ -73,11 +80,13 @@
   message('Você será avisado quando atualizar o status de acesso.');
  }
  async function enableApp(isAdmin){
+  const alreadyOpen=accessGranted&&document.body.classList.contains('bmw-authorized');
   accessGranted=true;admin=isAdmin;
   document.body.classList.add('bmw-authorized');
   show('bmwGateAuth');
   menu();
-  nav('ranking');
+  // Não trocar a aba selecionada quando houver revalidação.
+  if(!alreadyOpen)nav('ranking');
   try{
    await refresh();
   }catch(err){
@@ -111,9 +120,14 @@
     else{await loadRoster(t);show('bmwGateRequest');el('bmwGateAccount').textContent='Conta autenticada: '+(user.email||'')+'. Escolha seu nome para que Raphael ou Luis possa aprovar seu acesso.';message('Selecione apenas seu próprio nome. A gestão verificará a identidade.')}
    }
   }catch(error){
-   accessGranted=false;document.body.classList.remove('bmw-authorized');
-   show('bmwGateAuth');
-   message('Não foi possível validar o acesso: '+error.message+'. Se você já entrou antes, use Entrar novamente ou Atualizar status.');
+   // Uma falha temporária não deve trocar a tela de quem já está autorizado.
+   if(accessGranted&&document.body.classList.contains('bmw-authorized')){
+    const status=document.getElementById('publicLoadStatus');
+    if(status)status.textContent='Conexão instável. Seu acesso e a aba atual foram preservados; tente atualizar novamente.';
+   }else{
+    show('bmwGateAuth');
+    message('Não foi possível validar sua conta agora: '+error.message+'. Toque em Entrar novamente.');
+   }
   }finally{checking=false}
  }
  function rateLimit(err){
@@ -196,17 +210,34 @@
  el('bmwGatePendingLogout').onclick=logOut;
  // Revoga a sessão visual se a aprovação for retirada pelo gestor.
  async function revalidate(){
-  if(!accessGranted||!gateSession)return;
+  if(revalidating||checking||!accessGranted||!gateSession)return;
+  revalidating=true;
   try{
-   const t=await jwt();if(!t)throw Error('Sessão expirada');
-   const stillManager=await isManager(t);
-   if(admin&&!stillManager)throw Error('Acesso do gestor revogado');
-   if(!admin){
+   const t=await jwt();
+   if(!t)return;
+   // Autorizações são conferidas no banco; só uma resposta válida pode revogar a interface.
+   const manager=await isManager(t);
+   if(admin){
+    if(manager)return;
+    // Confirme a identidade antes de concluir que o privilégio foi removido.
     const u=await rest('/auth/v1/user',{headers:baseHeaders(t)});
-    const m=await getMember(t,u.id);
-    if(m?.status!=='approved'){member=m;accessGranted=false;admin=false;people=[];changes=[];approvalsAvailable=false;document.body.classList.remove('bmw-authorized');menu();m?pendingScreen():show('bmwGateRequest')}
+    if(!u?.id)return;
+    accessGranted=false;admin=false;document.body.classList.remove('bmw-authorized');
+    menu();show('bmwGateAuth');message('O acesso de gestor foi revogado.');
+    return;
    }
-  }catch{clearClient();show('bmwGateAuth');message('Autorização não confirmada. Faça login novamente.')}
+   const u=await rest('/auth/v1/user',{headers:baseHeaders(t)});
+   if(!u?.id)return;
+   const m=await getMember(t,u.id);
+   if(m?.status==='approved')return;
+   member=m;accessGranted=false;admin=false;people=[];changes=[];approvalsAvailable=false;
+   document.body.classList.remove('bmw-authorized');menu();
+   if(m)pendingScreen();
+   else{await loadRoster(t);show('bmwGateRequest')}
+  }catch(error){
+   // Não deslogar por timeout, falha de Wi-Fi, cache antigo ou resposta 5xx.
+   console.warn('Verificação adiada sem alterar a tela:',error?.message||error);
+  }finally{revalidating=false}
  }
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)revalidate()});
  setInterval(revalidate,60000);
