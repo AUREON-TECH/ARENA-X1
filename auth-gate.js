@@ -3,7 +3,7 @@
  const el=id=>document.getElementById(id);
  const message=t=>{const value=t||'';el('bmwGateMessage').textContent=value;const top=el('bmwGateTopMessage');if(top){top.textContent=value;top.style.display=value?'block':'none'}};
  const parts=['bmwGateAuth','bmwGateRequest','bmwGatePending'];
- let gateSession=null,user=null,member=null,busy=false,checking=false,revalidating=false,signupBlockUntil=0,signupTicker=null,signupMode=false,signupProfessional='';
+ let gateSession=null,user=null,member=null,busy=false,checking=false,revalidating=false,signupBlockUntil=0,signupTicker=null,signupMode=false,signupProfessional='',checkAgain=false;
  const baseHeaders=t=>({Authorization:'Bearer '+t});
  const show=(id)=>{for(const x of parts)el(x).style.display=x===id?'block':'none'};
  const setBusy=value=>{busy=value;for(const id of ['bmwGateEnter','bmwGateSignup','bmwGateReset','bmwGateRequestButton','bmwGateRecheck'])el(id).disabled=value};
@@ -112,7 +112,7 @@
   }
  }
  async function checkSession(){
-  if(checking)return;checking=true;
+  if(checking){checkAgain=true;return}checking=true;
   try{
    const t=await jwt();
    if(!t){show('bmwGateAuth');return}
@@ -144,7 +144,7 @@
     show('bmwGateAuth');
     message('Não foi possível validar sua conta agora: '+error.message+'. Toque em Entrar novamente.');
    }
-  }finally{checking=false}
+  }finally{checking=false;if(checkAgain){checkAgain=false;void checkSession()}}
  }
  function rateLimit(err){
   const text=String(err?.message||err);
