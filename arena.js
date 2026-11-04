@@ -275,5 +275,10 @@
   panel.scrollIntoView?.({behavior:'smooth',block:'start'});
  };
  const management=document.getElementById('management');
- if(management)management.insertBefore(approveShortcut,management.querySelector('h2')?.nextSibling||management.firstChild);
+ if(management){
+  const heading=management.querySelector('h2');
+  management.insertBefore(approveShortcut,heading?.nextSibling||management.firstChild);
+  // O painel precisa estar na seção Gestão; dentro da Arena ele ficava oculto ao navegar.
+  management.insertBefore(el('arenaManage'),approveShortcut.nextSibling);
+ }
 })();
