@@ -2,9 +2,9 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0a1423"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="BMW X1">
+<meta name="theme-color" content="#0a1423"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="ARENA X1">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icon.svg">
-<title>BMW X1 · AUREON Championship</title>
+<title>ARENA X1 · Competição 2026</title>
 <style>
 :root{color-scheme:dark;--bg:#08111d;--panel:#111e31;--panel2:#1b2d45;--line:#30455f;--ink:#f2f5fb;--soft:#adbfda;--gold:#edc476;--green:#82d7b5;--red:#f3a7a7}
 *{box-sizing:border-box}body{background:radial-gradient(ellipse at 54% 0,#203857,#08111d 57%);font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink);margin:0;min-height:100vh}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}
@@ -103,7 +103,7 @@ body.bmw-authorized #bmwGate{display:none!important}
 @media(max-width:720px){header{grid-template-columns:1fr;justify-items:center}.brand{grid-column:1}.top-actions{grid-column:1;justify-self:center}.date{text-align:center}}@media(max-width:560px){#bmwGate{padding:12px}.bmw-gate-card{padding:18px}.bmw-gate-card h1{font-size:25px}}
 </style>
 <div id="bmwGate"><div class="bmw-gate-card">
-<div class="bmw-gate-eyebrow">AUREON CHAMPIONSHIP</div><h1>BMW X1</h1>
+<div class="bmw-gate-eyebrow">COMPETIÇÃO 2026</div><h1>ARENA X1</h1>
 <img class="bmw-gate-photo" src="./bmw-x1-premium.webp?v=photo35" alt="BMW X1 — prêmio da campanha">
 <div id="bmwGateAuth">
 <p><b>Entre na competição.</b> Gestores entram diretamente com suas contas. Os demais profissionais precisam de aprovação de Raphael ou Luis.</p>
@@ -119,13 +119,13 @@ body.bmw-authorized #bmwGate{display:none!important}
 <div id="bmwGateMessage" role="status" aria-live="polite" style="display:none"></div>
 </div></div>
 <div class="wrap">
-<header><div class="brand"><small>AUREON CHAMPIONSHIP</small><strong>BMW <span class="gold">X1</span></strong></div><div class="top-actions"><span class="date">JUL — DEZ 2026<br>VGV até 02/11/2026</span><button class="btn primary" id="installBtn" type="button">⬇ Instalar</button></div></header>
+<header><div class="brand"><small>COMPETIÇÃO 2026</small><strong>ARENA <span class="gold">X1</span></strong></div><div class="top-actions"><span class="date">JUL — DEZ 2026<br>VGV até 02/11/2026</span><button class="btn primary" id="installBtn" type="button">⬇ Instalar</button></div></header>
 <div class="hero"><div><div class="muted">A conquista começa aqui</div><h1>Uma corrida.<br><span class="gold">Uma BMW X1.</span></h1><p>Acompanhe o ranking geral e consulte o resultado mensal de cada profissional, com pontuação comprovada e bônus aprovados pela gestão.</p><span class="pill">🏆 BMW X1</span><span class="pill">👥 Competição por equipes</span></div><div class="photo"><img src="./bmw-x1-premium.webp?v=photo35" alt="BMW X1 branca"></div></div>
 <div class="stats"><div class="stat"><small>Participantes</small><b id="eligibleCount">—</b><small id="roleCounts" style="display:block;margin-top:5px">Profissionais aprovados na campanha</small></div><div class="stat"><small>XP da campanha</small><b>VGV bruto</b></div><div class="stat"><small>Competição</small><b>Jul–Dez 2026</b></div></div>
 
 <nav class="nav" aria-label="Seções"><button class="btn active" data-tab="ranking">🏁 Ranking geral</button><button class="btn" data-tab="professional">👤 Profissional</button><button class="btn hidden" data-tab="management">⚙️ Gestão</button><button class="btn hidden" data-tab="rules">📋 Regras</button><button class="btn" data-tab="arena" id="arenaTab">🏟️ Arena • Mural</button><button class="btn" data-tab="login" id="loginTab">🔐 Login dos gestores</button><button class="btn hidden" id="logoutBtn">Sair</button></nav>
-<section id="arena" class="panel view hidden" aria-label="Arena BMW X1">
- <h2>🏟️ Arena BMW X1</h2>
+<section id="arena" class="panel view hidden" aria-label="ARENA X1">
+ <h2>🏟️ ARENA X1</h2>
  <p id="arenaLoading" role="status">Preparando seu Mural... Caso permaneça nesta tela, utilize o botão abaixo.</p>
  <button class="btn small" type="button" onclick="window.location.reload()">↻ Recarregar Arena</button>
  </section>
@@ -159,7 +159,7 @@ body.bmw-authorized #bmwGate{display:none!important}
 <div class="toolbar"><button id="suggestBtn" class="btn" type="button">Preparar aprovação (sem duplicar)</button><button id="saveBtn" class="btn primary" type="button">Salvar e atualizar ranking para todos</button><button id="reloadBtn" class="btn" type="button">Recarregar registros</button></div>
 <div id="suggestBox" class="status"></div><div id="adminStatus" role="status" class="status">Nenhum ajuste enviado nesta sessão.</div>
 <h2 style="margin-top:24px">Histórico de alterações</h2><div id="auditRows" class="muted">Carregando…</div>
-</section><div class="footer">AUREON CHAMPIONSHIP • BMW X1 • Ranking e bônus sujeitos à auditoria de resultados</div>
+</section><div class="footer">ARENA X1 • Prêmio BMW X1 • Ranking e bônus sujeitos à auditoria de resultados</div>
 </div>
 <script>
 'use strict';
@@ -324,7 +324,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 </script>
 <script src='./bonus-breakdown.js'></script>
-<script src='./arena.js?v=arena-compact-v25'></script>
+<script src='./arena.js?v=arena-brand-v26'></script>
 <script src='./rules-cards.js?v=rules3'></script>
 <script src='./auth-gate.js?v=gate-manager-login-v18'></script>
 
