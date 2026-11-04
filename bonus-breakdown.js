@@ -15,8 +15,23 @@
   heading.querySelector('th:nth-last-child(2)').textContent='EQUIPARAÇÃO';
   heading.lastElementChild.textContent='XP TOTAL GERAL';
   heading.lastElementChild.title='Soma final: VGV + presença + pontualidade + TOP + renda + casais + eficiência + entrada validada + ajustes + equiparação';
+  // Ranking compacto por padrão; detalhes completos acessíveis em um clique.
+  const rankPanel=document.getElementById('ranking');
+  const toolbar=rankPanel?.querySelector('.toolbar');
+  if(rankPanel&&toolbar){
+    const toggle=document.createElement('button');
+    toggle.type='button';toggle.className='btn small';toggle.id='toggleBonusDetail';
+    toggle.textContent='Mostrar todas as colunas';
+    toggle.setAttribute('aria-pressed','false');
+    toggle.onclick=()=>{
+      const expanded=rankPanel.classList.toggle('ranking-expanded');
+      toggle.textContent=expanded?'Visualização compacta':'Mostrar todas as colunas';
+      toggle.setAttribute('aria-pressed',String(expanded));
+    };
+    toolbar.appendChild(toggle);
+  }
   const style=document.createElement('style');
-  style.textContent='.ranking-table{min-width:1630px;border-collapse:separate;border-spacing:0}.ranking-table td.num{white-space:nowrap;font-variant-numeric:tabular-nums}.ranking-table th{font-size:11px}.ranking-table th:last-child,.ranking-table td:last-child{position:sticky;right:0;z-index:3;min-width:154px;width:154px;text-align:right;background:#172943!important;color:#ffdb8b;font-weight:900;box-shadow:-8px 0 14px rgba(4,12,25,.55);border-left:2px solid #d4ab64}.ranking-table th:last-child{z-index:5;background:#253953!important;color:#ffdf9d}.ranking-table tr:hover td:last-child{background:#243d58!important}.ranking-table td:last-child{font-size:15px}.bonus-breakdown{margin:14px 0}.bonus-breakdown strong{color:#edc476}.bonus-breakdown .month-item{padding:7px 10px;border-bottom:1px solid #364b65}.bonus-breakdown summary{cursor:pointer;padding:10px;font-weight:700}@media(max-width:650px){.ranking-table td:last-child,.ranking-table th:last-child{min-width:126px;width:126px;padding:10px 6px;font-size:12px}}';
+  style.textContent=".ranking-table{min-width:1080px;border-collapse:separate;border-spacing:0;table-layout:auto}\n#ranking .panel{min-width:0}\n#ranking .table-wrap{max-width:100%;overflow-x:auto;scrollbar-width:thin}\n#ranking .ranking-table th,#ranking .ranking-table td{padding:7px 5px;font-size:11px;line-height:1.2;vertical-align:middle}\n#ranking .ranking-table th{font-size:9px;letter-spacing:0;text-transform:uppercase}\n#ranking .ranking-table td.num{white-space:nowrap;font-variant-numeric:tabular-nums}\n#ranking .ranking-table td:nth-child(3){max-width:200px;min-width:145px;overflow-wrap:anywhere;font-weight:600}\n#ranking .ranking-table th:nth-child(3){min-width:145px}\n#ranking .ranking-table td .role{padding:3px 5px;font-size:9px}\n#ranking:not(.ranking-expanded) .ranking-table tr>:nth-child(5),\n#ranking:not(.ranking-expanded) .ranking-table tr>:nth-child(13),\n#ranking:not(.ranking-expanded) .ranking-table tr>:nth-child(14),\n#ranking:not(.ranking-expanded) .ranking-table tr>:nth-child(15){display:none}\n#ranking.ranking-expanded .ranking-table{min-width:1500px}\n#ranking .ranking-table th:last-child,#ranking .ranking-table td:last-child{position:sticky;right:0;z-index:3;min-width:132px;width:132px;max-width:132px;text-align:right;background:#172943!important;color:#ffdb8b;font-weight:900;box-shadow:-6px 0 12px rgba(4,12,25,.5);border-left:2px solid #d4ab64;white-space:nowrap}\n#ranking .ranking-table th:last-child{z-index:5;background:#253953!important;color:#ffdf9d}\n#ranking .ranking-table tr:hover td:last-child{background:#243d58!important}\n#ranking .ranking-table td:last-child{font-size:12px}\n#ranking .toolbar{margin:10px 0 9px;gap:7px}\n#ranking .toolbar input,#ranking .toolbar select{padding:8px}\n#ranking #publicLoadStatus{margin-bottom:5px!important;font-size:11px!important}\n#ranking .podium{gap:6px;margin:6px 0 8px}\n#ranking .podium-item{padding:8px 10px}\n#ranking .podium-item strong{font-size:11px}\n#ranking .podium-item b{font-size:13px;margin-top:3px}\n#ranking .podium-item .podium-rank{font-size:15px;margin-bottom:2px}\n#ranking.panel{padding:12px}\n.bonus-breakdown{margin:12px 0}\n.bonus-breakdown strong{color:#edc476}\n.bonus-breakdown .month-item{padding:7px 10px;border-bottom:1px solid #364b65}\n.bonus-breakdown summary{cursor:pointer;padding:10px;font-weight:700}\n@media(max-width:650px){#ranking .ranking-table td:last-child,#ranking .ranking-table th:last-child{min-width:112px;width:112px;max-width:112px;font-size:11px}#ranking .ranking-table td:nth-child(3){min-width:130px;max-width:155px}#ranking .podium{grid-template-columns:1fr}#ranking .podium-item{padding:7px 9px}}\n";
   document.head.appendChild(style);
 
   function manualEntrada(p,month){
