@@ -71,7 +71,19 @@ html{scrollbar-gutter:stable}body{overflow-x:hidden}
 .photo img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;object-position:center 48%;background:#101a2a}
 @media(max-width:680px){html{scrollbar-gutter:auto}.nav{gap:7px}.nav .btn{font-size:12px;padding:10px 11px}.wrap{padding:12px 10px 48px}.panel{padding:13px}#bmwGate{padding:10px}.bmw-gate-card{padding:16px}.bmw-gate-photo{margin:8px 0 14px}}
 </style>
-</head><body>
+<style id="arena-screen-fix-v24">
+body:has(#arena:not(.hidden)) .hero,body:has(#arena:not(.hidden)) .stats{display:none!important}
+body:has(#arena:not(.hidden)) .nav{margin:5px 0 7px!important;display:flex;flex-wrap:wrap;gap:6px}
+body:has(#arena:not(.hidden)) .nav .btn{padding:8px 12px;font-size:13px}
+body:has(#arena:not(.hidden)) header{padding-top:4px;padding-bottom:4px;margin-bottom:0}
+body:has(#arena:not(.hidden)) #arena{margin-top:0!important}
+body:has(#arena:not(.hidden)) #arenaFeedArea{overflow:hidden}
+body:has(#arena:not(.hidden)) #arenaFeedArea[data-community-view="chat"] .arena-compose{order:3}
+body:has(#arena:not(.hidden)) #arenaFeedArea[data-community-view="chat"] #arenaFeed{order:2}
+body:has(#arena:not(.hidden)) #arenaFeedArea[data-community-view="chat"] .arena-community-tabs{order:0}
+body:has(#arena:not(.hidden)) #arenaFeedArea[data-community-view="chat"] .arena-status{order:1}
+@media(max-width:650px){body:has(#arena:not(.hidden)) .nav{gap:4px}body:has(#arena:not(.hidden)) .nav .btn{padding:7px 8px;font-size:11px}}
+</style></head><body>
 <style>
 body:not(.bmw-authorized) .wrap{display:none!important}
 body.bmw-authorized #bmwGate{display:none!important}
@@ -312,7 +324,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 </script>
 <script src='./bonus-breakdown.js'></script>
-<script src='./arena.js?v=arena-viewport-v23'></script>
+<script src='./arena.js?v=arena-screen-v24'></script>
 <script src='./rules-cards.js?v=rules3'></script>
 <script src='./auth-gate.js?v=gate-manager-login-v18'></script>
 
