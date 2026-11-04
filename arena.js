@@ -94,7 +94,7 @@
   const professional=el('arenaProfessional').value;
   if(!people.some(x=>x.name===professional))return setmsg('Escolha um nome válido da lista.');
   try{
-   await api('bmw_x1_members',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({user_id:user.id,professional,status:'pending'})});
+   await api('bmw_x1_members',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({user_id:user.id,professional,status:'pending',requester_email:String(user.email||'').toLowerCase()})});
    setmsg('Solicitação enviada! Aguarde aprovação de Raphael ou Luis.');await connect();
   }catch(e){setmsg('Não foi possível solicitar aprovação: '+e.message)}
  };
@@ -147,10 +147,10 @@
   if(!admin){el('arenaManage').classList.add('hidden');return}
   el('arenaManage').classList.remove('hidden');
   try{
-   const rows=await api('bmw_x1_members?select=user_id,professional,status,requested_at&order=requested_at.desc&limit=100',{},true);
+   const rows=await api('bmw_x1_members?select=user_id,professional,status,requested_at,requester_email&order=requested_at.desc&limit=100',{},true);
    const pending=rows.filter(x=>x.status==='pending'),approved=rows.filter(x=>x.status==='approved');
    el('arenaReviewList').innerHTML='<p>'+pending.length+' solicitações pendentes · '+approved.length+' aprovadas</p>'+
-    pending.map(m=>'<div class="arena-review-row"><strong>'+safe(m.professional)+'</strong><small>Solicitado em '+age(m.requested_at)+' · ID '+safe(m.user_id.slice(0,8))+'</small><div class="arena-buttons"><button class="btn small primary" data-approve="'+safe(m.user_id)+'">Aprovar</button><button class="btn small red" data-reject="'+safe(m.user_id)+'">Recusar</button></div></div>').join('')+
+    pending.map(m=>'<div class="arena-review-row"><strong>'+safe(m.professional)+'</strong><small>Solicitado em '+age(m.requested_at)+' · '+safe(m.requester_email||'sem e-mail')+' · ID '+safe(m.user_id.slice(0,8))+'</small><div class="arena-buttons"><button class="btn small primary" data-approve="'+safe(m.user_id)+'">Aprovar</button><button class="btn small red" data-reject="'+safe(m.user_id)+'">Recusar</button></div></div>').join('')+
     (pending.length?'':'<p class="arena-hint">Nenhuma solicitação aguardando aprovação.</p>');
    for(const row of el('arenaReviewList').querySelectorAll('[data-approve],[data-reject]')){
     row.onclick=async()=>{
