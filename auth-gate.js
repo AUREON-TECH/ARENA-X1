@@ -3,10 +3,21 @@
  const el=id=>document.getElementById(id);
  const message=t=>{el('bmwGateMessage').textContent=t||''};
  const parts=['bmwGateAuth','bmwGateRequest','bmwGatePending'];
- let gateSession=null,user=null,member=null,busy=false,checking=false,signupBlockUntil=0,signupTicker=null;
+ let gateSession=null,user=null,member=null,busy=false,checking=false,signupBlockUntil=0,signupTicker=null,signupMode=false;
  const baseHeaders=t=>({Authorization:'Bearer '+t});
  const show=(id)=>{for(const x of parts)el(x).style.display=x===id?'block':'none'};
  const setBusy=value=>{busy=value;for(const id of ['bmwGateEnter','bmwGateSignup','bmwGateReset','bmwGateRequestButton','bmwGateRecheck'])el(id).disabled=value};
+ function setSignupMode(active){
+  if(busy)return;
+  signupMode=active;
+  el('bmwGateConfirmWrap').style.display=active?'block':'none';
+  el('bmwGateConfirm').required=active;
+  el('bmwGatePassword').autocomplete=active?'new-password':'current-password';
+  el('bmwGateEnter').textContent=active?'Criar minha conta':'Entrar';
+  el('bmwGateSignup').textContent=active?'Voltar ao login':'Criar conta';
+  el('bmwGateReset').style.display=active?'none':'';
+  message(active?'Cadastro novo: informe seu e-mail, crie uma senha e confirme-a. Depois clique em Criar minha conta.':'Acesse com seu e-mail e senha já cadastrados.');
+ }
  function clearClient(){
   accessGranted=false;admin=false;session=null;gateSession=null;user=null;member=null;
   people=[];changes=[];approvalsAvailable=false;
@@ -114,8 +125,7 @@
    if(signupTicker)clearInterval(signupTicker);
    signupTicker=setInterval(()=>{
     const n=Math.max(0,Math.ceil((signupBlockUntil-Date.now())/1000));
-    el('bmwGateSignup').textContent=n?'Aguarde '+n+'s':'Criar conta';
-    el('bmwGateSignup').disabled=n>0;
+    if(signupMode){el('bmwGateEnter').textContent=n?'Aguarde '+n+'s':'Criar minha conta';el('bmwGateEnter').disabled=n>0}
     if(!n){clearInterval(signupTicker);signupTicker=null}
    },1000);
    message('Limite temporário de cadastros. Aguarde '+seconds+' segundos e tente novamente somente uma vez.');
@@ -124,6 +134,19 @@
  el('bmwGateForm').onsubmit=async e=>{
   e.preventDefault();if(busy)return;
   const email=el('bmwGateEmail').value.trim().toLowerCase(),password=el('bmwGatePassword').value;
+  if(signupMode){
+   if(Date.now()<signupBlockUntil){rateLimit(new Error('For security purposes, you can only request this after '+Math.ceil((signupBlockUntil-Date.now())/1000)+' seconds.'));return}
+   if(password.length<8||password!==el('bmwGateConfirm').value){message(password.length<8?'A senha precisa ter pelo menos oito caracteres.':'As duas senhas estão diferentes. Digite novamente.');return}
+   setBusy(true);message('Criando sua conta, confira a mensagem aqui...');
+   try{
+    await rest('/auth/v1/signup',{method:'POST',body:JSON.stringify({email,password})});
+    el('bmwGatePassword').value='';el('bmwGateConfirm').value='';
+    signupMode=false;setBusy(false);setSignupMode(false);
+    message('Pedido de cadastro recebido! Confira seu e-mail (inclusive spam) e confirme a conta. Depois use Entrar e solicite aprovação ao gestor.');
+   }catch(error){rateLimit(error)}
+   finally{setBusy(false);if(signupMode&&Date.now()<signupBlockUntil)el('bmwGateEnter').disabled=true}
+   return;
+  }
   setBusy(true);message('Validando e-mail, senha e autorização...');
   try{
    const result=await rest('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});
@@ -142,18 +165,7 @@
   }
   finally{setBusy(false)}
  };
- el('bmwGateSignup').onclick=async()=>{
-  if(busy||Date.now()<signupBlockUntil)return;
-  const email=el('bmwGateEmail').value.trim().toLowerCase(),password=el('bmwGatePassword').value;
-  if(!email||password.length<8){message('Informe seu e-mail e senha com pelo menos oito caracteres.');return}
-  setBusy(true);message('Solicitando criação da conta...');
-  try{
-   await rest('/auth/v1/signup',{method:'POST',body:JSON.stringify({email,password})});
-   el('bmwGatePassword').value='';
-   message('Pedido recebido. Confira o e-mail de confirmação (inclusive a caixa de spam). Depois clique em Entrar para pedir aprovação.');
-  }catch(e){rateLimit(e)}
-  finally{setBusy(false);if(Date.now()<signupBlockUntil)el('bmwGateSignup').disabled=true}
- };
+ el('bmwGateSignup').onclick=()=>setSignupMode(!signupMode);
  el('bmwGateReset').onclick=async()=>{
   const email=el('bmwGateEmail').value.trim().toLowerCase();
   if(!email){message('Informe seu e-mail primeiro.');return}
