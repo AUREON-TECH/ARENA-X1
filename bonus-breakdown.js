@@ -44,6 +44,20 @@
     const p=person(document.getElementById('personSelect').value);
     if(!p||!approvalsAvailable)return;
     const root=document.getElementById('personBody');
+    // Ajustar as tabelas mensais antigas para exibir o que já está creditado.
+    const categories=p.role==='CAPTADOR'?['top','ticket','casais']:p.role==='CONSULTOR'?['top','eficiencia']:['top','entrada'];
+    root.querySelectorAll('.month-card').forEach((card,i)=>{
+      const mm=p.months[i];if(!mm)return;
+      card.querySelectorAll('.bonus-entry').forEach((row,j)=>{
+        const category=categories[j],amt=category==='top'?topXP(p,mm.month):category==='ticket'?rendaXP(p,mm.month):category==='casais'?casalXP(p,mm.month):category==='eficiencia'?(mm.month==='2026-11'?eficienciaXP(p):0):manualEntrada(p,mm.month);
+        const parts=row.children;
+        if(category==='ticket'&&parts[0]?.querySelector('b'))parts[0].querySelector('b').textContent='Renda média — Captação';
+        if(parts[1]?.querySelector('b'))parts[1].querySelector('b').textContent=fmt.format(amt);
+        if(parts[2]?.querySelector('b'))parts[2].querySelector('b').textContent=fmt.format(amt);
+        if(parts[3]?.querySelector('b'))parts[3].querySelector('b').textContent='0';
+        if(parts[4]?.querySelector('small'))parts[4].querySelector('small').textContent=category==='entrada'?'Aguardando Luis':amt>0?'Creditado automaticamente':'Sem XP nesta categoria';
+      });
+    });
     const old=root.querySelector('.bonus-breakdown');if(old)old.remove();
     const div=document.createElement('section');div.className='bonus-breakdown';
     const parts=[
@@ -54,7 +68,7 @@
     div.innerHTML='<h3>De onde vem cada bônus?</h3><div class="month-grid">'+parts.map(x=>'<div><small>'+esc(x[0])+'</small><strong>'+fmt.format(x[1])+' XP</strong></div>').join('')+'</div>'+
       p.months.map((m,i)=>'<details><summary>'+MN[i]+' 2026 — '+fmt.format(monthTotalXP(p,m.month))+' XP</summary>'+
         '<div class="month-item">VGV: '+fmt.format(m.xp_base)+' XP</div>'+
-        '<div class="month-item">Presença: '+fmt.format(attendanceXP(p,'presenca',m.month))+' XP ('+monthDays(p,m.month)+' dias previstos, antes de descontos)</div>'+
+        '<div class="month-item">Presença: '+fmt.format(attendanceXP(p,'presenca',m.month))+' XP ('+monthDays(p,m.month)+' dias previstos; líquido após descontos)</div>'+
         '<div class="month-item">Pontualidade: '+fmt.format(attendanceXP(p,'pontualidade',m.month))+' XP</div>'+
         '<div class="month-item">TOP: '+fmt.format(topXP(p,m.month))+' XP</div>'+
         '<div class="month-item">Renda média: '+fmt.format(rendaXP(p,m.month))+' XP</div>'+
