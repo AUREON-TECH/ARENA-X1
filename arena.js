@@ -11,7 +11,7 @@
  const section=document.getElementById('arena')||document.createElement('section');section.className='panel view hidden';section.id='arena';
  section.innerHTML='<div class="arena-head"><div><h2>🏟️ Arena BMW X1</h2><p>Desafios, provocações saudáveis e torcida pela BMW. Publicações de até <strong>50 caracteres</strong>.</p></div><div class="arena-subtitle">Competidores aprovados · Arena BMW X1</div></div>'+
  '<div id="arenaStatus" class="arena-status" role="status"></div>'+
- '<div id="arenaAccess"><div class="arena-card"><h3>Entre na disputa</h3><p>Crie sua conta com seu e-mail. Depois da confirmação, solicite aprovação para participar.</p>'+
+ '<div id="arenaAccess"><div class="arena-card"><h3>Entre na disputa</h3><p>Crie uma conta na tela inicial e solicite aprovação. Não é necessário outro login para participar.</p>'+
  '<form id="arenaAuthForm"><label>E-mail<input id="arenaEmail" type="email" autocomplete="email" required placeholder="voce@exemplo.com"></label><label>Senha<input id="arenaPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="Sua senha"></label>'+
  '<div class="arena-buttons"><button class="btn primary" type="submit">Entrar</button><button class="btn" id="arenaSignup" type="button">Criar conta</button><button class="btn small" id="arenaRecover" type="button">Esqueci a senha</button></div></form><p class="arena-hint">A conta não libera o mural automaticamente. Raphael ou Luis precisa aprovar seu perfil. Nunca compartilhe sua senha.</p></div></div>'+
  '<div id="arenaWaiting" class="arena-card hidden"><h3>Solicitação de acesso</h3><p id="arenaMemberInfo"></p><div id="arenaRequestArea"><label>Selecione seu nome na competição<select id="arenaProfessional"></select></label><button class="btn primary" id="arenaRequest" type="button">Solicitar aprovação</button></div><button class="btn small" id="arenaLeave" type="button">Sair desta conta</button></div>'+
@@ -60,7 +60,7 @@
   el('arenaPostForm').classList.toggle('hidden',!canInteract());
   el('arenaPostCategory').querySelector('option[value="gestao"]').disabled=!admin;
   if(!admin&&el('arenaPostCategory').value==='gestao')el('arenaPostCategory').value='torcida';
-  el('arenaLogout').classList.add('hidden');
+  // O login é único; não existe botão de logout separado na Arena.
   el('arenaManage').classList.toggle('hidden',!admin);
  }
  function roster(){
@@ -143,7 +143,7 @@
   }catch(e){setmsg('Não foi possível solicitar aprovação: '+e.message)}
  };
  async function leave(){const access=local?.access_token;local=null;user=null;member=null;localStorage.removeItem('bmw-x1-arena-auth');renderAccess();setmsg('Você saiu da sua conta da Arena.');if(access)try{await rest('/auth/v1/logout',{method:'POST',headers:{Authorization:'Bearer '+access}})}catch{}}
- el('arenaLeave').onclick=leave;el('arenaLogout').onclick=leave;
+ el('arenaLeave').onclick=()=>window.bmwLogout?.();
  const age=iso=>{try{return new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}catch{return ''}};
 
  const avatar=name=>safe(String(name||'?').split(/\s+/).filter(Boolean).slice(0,2).map(v=>v[0]).join('').toUpperCase());
