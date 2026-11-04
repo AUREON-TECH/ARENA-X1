@@ -257,7 +257,13 @@
  setInterval(()=>{if(el('arena').classList.contains('hidden')||(member?.status!=='approved'&&!admin))return;if(document.activeElement===el('arenaPostText')||document.activeElement?.closest('.arena-comment-form'))return;loadFeed().catch(()=>{})},30000);
  // Também mostrar a aprovação de acesso dentro da Gestão, sem mudar as permissões existentes.
  const approveShortcut=document.createElement('button');approveShortcut.className='btn small';approveShortcut.type='button';approveShortcut.textContent='👥 Aprovar contas do mural';
- approveShortcut.onclick=()=>nav('arena');
+ approveShortcut.onclick=()=>{
+  nav('arena');
+  const panel=el('arenaManage');
+  panel.open=true;
+  review().catch(e=>setmsg('Aprovações: '+e.message));
+  panel.scrollIntoView?.({behavior:'smooth',block:'start'});
+ };
  const management=document.getElementById('management');
  if(management)management.insertBefore(approveShortcut,management.querySelector('h2')?.nextSibling||management.firstChild);
 })();
