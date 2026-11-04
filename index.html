@@ -96,8 +96,8 @@ body.bmw-authorized #bmwGate{display:none!important}
 </div></div>
 <div class="wrap">
 <header><div class="brand"><small>AUREON CHAMPIONSHIP</small><strong>BMW <span class="gold">X1</span></strong></div><div class="top-actions"><span class="date">JUL — DEZ 2026<br>VGV até 02/11/2026</span><button class="btn primary" id="installBtn" type="button">⬇ Instalar</button></div></header>
-<div class="hero"><div><div class="muted">A conquista começa aqui</div><h1>Uma corrida.<br><span class="gold">Uma BMW X1.</span></h1><p>Acompanhe o ranking geral e consulte o resultado mensal de cada profissional, com pontuação comprovada e bônus aprovados pela gestão.</p><span class="pill">🏆 BMW X1 2012</span><span class="pill">👥 37 participantes</span></div><div class="photo"><img src="./bmw-x1-hero.webp" alt="BMW X1 branca"></div></div>
-<div class="stats"><div class="stat"><small>Participantes</small><b id="eligibleCount">37</b><small id="roleCounts" style="display:block;margin-top:5px">23 captação · 9 consultoria · 5 closer</small></div><div class="stat"><small>XP da campanha</small><b>VGV bruto</b></div><div class="stat"><small>Competição</small><b>Jul–Dez 2026</b></div></div>
+<div class="hero"><div><div class="muted">A conquista começa aqui</div><h1>Uma corrida.<br><span class="gold">Uma BMW X1.</span></h1><p>Acompanhe o ranking geral e consulte o resultado mensal de cada profissional, com pontuação comprovada e bônus aprovados pela gestão.</p><span class="pill">🏆 BMW X1 2012</span><span class="pill">👥 Competição por equipes</span></div><div class="photo"><img src="./bmw-x1-hero.webp" alt="BMW X1 branca"></div></div>
+<div class="stats"><div class="stat"><small>Participantes</small><b id="eligibleCount">—</b><small id="roleCounts" style="display:block;margin-top:5px">Profissionais aprovados na campanha</small></div><div class="stat"><small>XP da campanha</small><b>VGV bruto</b></div><div class="stat"><small>Competição</small><b>Jul–Dez 2026</b></div></div>
 
 <nav class="nav" aria-label="Seções"><button class="btn active" data-tab="ranking">🏁 Ranking geral</button><button class="btn" data-tab="professional">👤 Profissional</button><button class="btn hidden" data-tab="management">⚙️ Gestão</button><button class="btn hidden" data-tab="rules">📋 Regras</button><button class="btn" data-tab="login" id="loginTab">🔐 Login dos gestores</button><button class="btn hidden" id="logoutBtn">Sair</button></nav>
 <section id="ranking" class="panel view">
@@ -193,9 +193,10 @@ async function refresh(){
  ]);
  if(monthlyResult.status==='fulfilled'){
    const m=monthlyResult.value;
-   if(!Array.isArray(m.records)||m.records.length<37)throw Error('Base incompleta: menos de 37 participantes.');
+   if(!Array.isArray(m.records)||m.records.length===0)throw Error('Base de profissionais vazia.');
    const valid=m.records.filter(p=>['CAPTADOR','CONSULTOR','CLOSER'].includes(p.role));
-   if(valid.length!==37)throw Error('Quantidade elegível inesperada: '+valid.length);
+   if(valid.length!==m.records.length)throw Error('A base contém funções inválidas.');
+   if(new Set(valid.map(p=>p.name)).size!==valid.length)throw Error('Há nomes duplicados na base.');
    people=valid;
    lastMonthlyVersion=m.data_through||'não informada';
    document.getElementById('eligibleCount').textContent=String(people.length);
@@ -255,5 +256,7 @@ if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serv
 <script src='./bonus-breakdown.js'></script>
 <script src='./arena.js?v=arena4'></script>
 <script src='./rules-cards.js?v=rules2'></script>
-<script src='./auth-gate.js?v=gate1'></script>
+<script src='./auth-gate.js?v=gate2'></script>
+<script src='./result-social.js?v=social1'></script>
+<script src='./add-professional.js?v=add1'></script>
 </body></html>
