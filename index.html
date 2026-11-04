@@ -104,7 +104,7 @@ body.bmw-authorized #bmwGate{display:none!important}
 <div class="bmw-gate-actions"><button class="bmw-gate-btn primary" id="bmwGateRequestButton" type="button">Pedir aprovação</button><button class="bmw-gate-btn" id="bmwGateRequestLogout" type="button">Sair</button></div></div>
 <div id="bmwGatePending"><h2 id="bmwGatePendingTitle">Aguardando aprovação</h2><p id="bmwGatePendingText">Raphael ou Luis precisa liberar seu acesso.</p>
 <div class="bmw-gate-actions"><button class="bmw-gate-btn primary" id="bmwGateRecheck" type="button">Atualizar status</button><button class="bmw-gate-btn" id="bmwGatePendingLogout" type="button">Sair</button></div></div>
-<div id="bmwGateMessage" role="status" aria-live="polite">Verificando acesso...</div>
+<div id="bmwGateMessage" role="status" aria-live="polite" style="display:none"></div>
 </div></div>
 <div class="wrap">
 <header><div class="brand"><small>AUREON CHAMPIONSHIP</small><strong>BMW <span class="gold">X1</span></strong></div><div class="top-actions"><span class="date">JUL — DEZ 2026<br>VGV até 02/11/2026</span><button class="btn primary" id="installBtn" type="button">⬇ Instalar</button></div></header>
@@ -314,7 +314,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <script src='./bonus-breakdown.js'></script>
 <script src='./arena.js?v=arena-management-v17'></script>
 <script src='./rules-cards.js?v=rules3'></script>
-<script src='./auth-gate.js?v=gate-manager-login-v17'></script>
+<script src='./auth-gate.js?v=gate-manager-login-v18'></script>
 
 <script src='./result-social.js?v=social2'></script>
 <script src='./add-professional.js?v=add2'></script>
