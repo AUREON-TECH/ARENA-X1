@@ -123,7 +123,16 @@
    storeAuth(result,false);
    el('bmwGatePassword').value='';
    await checkSession();
-  }catch(error){message('Não foi possível entrar: '+error.message)}
+  }catch(error){
+   const raw=String(error?.message||error||'');
+   if(/invalid login credentials|invalid credentials/i.test(raw)){
+    message('Conta não encontrada ou senha incorreta. Se este é seu primeiro acesso, clique em Criar conta. Depois confirme o e-mail e entre novamente.');
+   }else if(/email not confirmed/i.test(raw)){
+    message('Seu e-mail ainda não foi confirmado. Abra a mensagem recebida e confirme antes de entrar.');
+   }else{
+    message('Não foi possível entrar: '+raw);
+   }
+  }
   finally{setBusy(false)}
  };
  el('bmwGateSignup').onclick=async()=>{
