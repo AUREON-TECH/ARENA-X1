@@ -27,6 +27,7 @@
  const setmsg=msg=>{el('arenaStatus').textContent=msg||''};
  function authToken(){return local?.access_token||''}
  async function arenaToken(){
+  if(window.bmwAppToken)return await window.bmwAppToken();
   if(!local)return null;
   if(Date.now()<Number(local.expires_at||0)*1000-45000)return local.access_token;
   try{
@@ -36,19 +37,21 @@
   }catch{local=null;user=null;member=null;localStorage.removeItem('bmw-x1-arena-auth');return null}
  }
  async function api(path,opts={},manager=false){
-  const t=manager?await token():await arenaToken();
+  const t=manager?(await window.bmwAppToken?.()||await token()):await arenaToken();
   if(!t)throw Error(manager?'Faça login como gestor na aba Gestão.':'Sua sessão expirou. Entre novamente.');
   return rest('/rest/v1/'+path,{...opts,headers:{Authorization:'Bearer '+t,...(opts.headers||{})}});
  }
  function renderAccess(){
-  const allowed=member?.status==='approved';
-  el('arenaAccess').classList.toggle('hidden',!!user);
+  const allowed=member?.status==='approved'||admin;
+  el('arenaAccess').classList.toggle('hidden',!!user||admin||accessGranted);
   el('arenaWaiting').classList.toggle('hidden',!user||allowed);
   el('arenaFeedArea').classList.toggle('hidden',!allowed);
   const prof=member?.professional;
   el('arenaMemberInfo').textContent=member?(member.status==='pending'?'Aguardando aprovação de Raphael ou Luis para '+prof+'.':member.status==='rejected'?'Solicitação não aprovada para '+prof+'. Fale com a gestão.':'Seu perfil: '+prof):'Sua conta foi autenticada. Escolha seu nome e solicite aprovação.';
   el('arenaRequestArea').classList.toggle('hidden',!!member);
-  if(allowed)el('arenaIdentity').textContent='✅ '+prof+' · Participante aprovado';
+  if(allowed)el('arenaIdentity').textContent=admin?'🛡️ Gestão • Raphael / Luis':'✅ '+prof+' · Participante aprovado';
+  el('arenaPostForm').classList.toggle('hidden',member?.status!=='approved');
+  if(admin)el('arenaLogout').classList.add('hidden');
   el('arenaManage').classList.toggle('hidden',!admin);
  }
  function roster(){
@@ -67,7 +70,7 @@
    const rows=await api('bmw_x1_members?select=user_id,professional,status,requested_at&user_id=eq.'+encodeURIComponent(u.id));
    member=rows?.[0]||null;
    renderAccess();
-   if(member?.status==='approved')await loadFeed();
+   if(member?.status==='approved'||admin)await loadFeed();
   }catch(e){setmsg('Acesso: '+e.message);renderAccess()}
  }
  el('arenaAuthForm').onsubmit=async event=>{
@@ -133,22 +136,22 @@
  el('arenaLeave').onclick=leave;el('arenaLogout').onclick=leave;
  const age=iso=>{try{return new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}catch{return ''}};
  async function loadFeed(){
-  if(member?.status!=='approved')return;
+  if(member?.status!=='approved'&&!admin)return;
   const [postsData,commentsData,likesData]=await Promise.all([
-   api('bmw_x1_posts?select=id,user_id,professional,body,created_at&order=created_at.desc&limit=80'),
-   api('bmw_x1_comments?select=id,post_id,user_id,professional,body,created_at&order=created_at.asc&limit=500'),
-   api('bmw_x1_likes?select=post_id,user_id&limit=2000')
+   api('bmw_x1_posts?select=id,user_id,professional,body,created_at&order=created_at.desc&limit=80',{},admin),
+   api('bmw_x1_comments?select=id,post_id,user_id,professional,body,created_at&order=created_at.asc&limit=500',{},admin),
+   api('bmw_x1_likes?select=post_id,user_id&limit=2000',{},admin)
   ]);
   postCache=postsData||[];comments=commentsData||[];likes=likesData||[];
   const html=postCache.map(post=>{
    const postComments=comments.filter(x=>x.post_id===post.id),postLikes=likes.filter(x=>x.post_id===post.id),liked=postLikes.some(x=>x.user_id===user.id),owner=post.user_id===user.id;
    return '<article class="arena-post"><div class="arena-post-head"><strong>'+safe(post.professional)+'</strong><span>'+age(post.created_at)+'</span></div>'+
     '<div class="arena-post-text">'+safe(post.body)+'</div><div class="arena-post-actions">'+
-    '<button class="btn small" data-like="'+post.id+'">'+(liked?'❤️ Curtido':'🤍 Curtir')+' · '+postLikes.length+'</button>'+
+    (member?.status==='approved'?'<button class="btn small" data-like="'+post.id+'">'+(liked?'❤️ Curtido':'🤍 Curtir')+' · '+postLikes.length+'</button>':'<span>❤️ '+postLikes.length+'</span>')+
     '<button class="btn small" data-commenttoggle="'+post.id+'">💬 Comentários · '+postComments.length+'</button>'+
     ((owner||admin)?'<button class="btn small red" data-delete="'+post.id+'">Excluir</button>':'')+'</div>'+
     '<div class="arena-comments hidden" id="arenaComments'+post.id+'">'+postComments.map(c=>'<div class="arena-comment"><b>'+safe(c.professional)+':</b> '+safe(c.body)+' <small>'+age(c.created_at)+'</small>'+(c.user_id===user.id||admin?' <button class="btn small red" data-deletecomment="'+c.id+'">Excluir</button>':'')+'</div>').join('')+
-    '<form class="arena-comment-form" data-post="'+post.id+'"><input maxlength="50" required placeholder="Comente em até 50 caracteres" aria-label="Comentar"><button class="btn small primary" type="submit">Comentar</button></form></div></article>';
+    (member?.status==='approved'?'<form class="arena-comment-form" data-post="'+post.id+'"><input maxlength="50" required placeholder="Comente em até 50 caracteres" aria-label="Comentar"><button class="btn small primary" type="submit">Comentar</button></form>':'')+'</div></article>';
   }).join('')||'<div class="arena-card">Ainda não há mensagens. Publique o primeiro desafio!</div>';
   el('arenaFeed').innerHTML=html;
   el('arenaFeed').querySelectorAll('[data-commenttoggle]').forEach(btn=>btn.onclick=()=>el('arenaComments'+btn.dataset.commenttoggle).classList.toggle('hidden'));
@@ -214,7 +217,7 @@
   }
  };
  tab.onclick=()=>nav('arena');
- setInterval(()=>{if(el('arena').classList.contains('hidden')||member?.status!=='approved')return;if(document.activeElement===el('arenaPostText')||document.activeElement?.closest('.arena-comment-form'))return;loadFeed().catch(()=>{})},30000);
+ setInterval(()=>{if(el('arena').classList.contains('hidden')||(member?.status!=='approved'&&!admin))return;if(document.activeElement===el('arenaPostText')||document.activeElement?.closest('.arena-comment-form'))return;loadFeed().catch(()=>{})},30000);
  // Também mostrar a aprovação de acesso dentro da Gestão, sem mudar as permissões existentes.
  const approveShortcut=document.createElement('button');approveShortcut.className='btn small';approveShortcut.type='button';approveShortcut.textContent='👥 Aprovar contas do mural';
  approveShortcut.onclick=()=>nav('arena');
