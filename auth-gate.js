@@ -11,6 +11,9 @@
  signupField.id='bmwSignupProfessionalWrap';signupField.style.display='none';
  signupField.innerHTML='<label for="bmwSignupProfessional">Seu nome na equipe</label><select id="bmwSignupProfessional" style="width:100%;padding:12px;border-radius:9px" required><option value="">Carregando participantes...</option></select>';
  el('bmwGateConfirmWrap').after(signupField);
+ // O seletor é obrigatório somente no cadastro, nunca no login.
+ el('bmwSignupProfessional').required=false;
+ el('bmwGateConfirm').required=false;
  async function prepareSignupRoster(){
   const rows=await rest('/rest/v1/bmw_x1_roster?select=professional,role&order=professional.asc');
   const select=el('bmwSignupProfessional');select.innerHTML='<option value="">Selecione seu nome</option>';
