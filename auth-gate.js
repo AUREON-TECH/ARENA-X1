@@ -15,7 +15,7 @@
   el('bmwGatePassword').autocomplete=active?'new-password':'current-password';
   el('bmwGateEnter').textContent=active?'Criar minha conta':'Entrar';
   el('bmwGateSignup').textContent=active?'Voltar ao login':'Criar conta';
-  el('bmwGateReset').style.display=active?'none':'';
+  el('bmwGateReset').style.display='none';
   message(active?'Cadastro novo: informe seu e-mail, crie uma senha e confirme-a. Depois clique em Criar minha conta.':'Acesse com seu e-mail e senha já cadastrados.');
  }
  function clearClient(){
@@ -153,10 +153,16 @@
    if(password.length<8||password!==el('bmwGateConfirm').value){message(password.length<8?'A senha precisa ter pelo menos oito caracteres.':'As duas senhas estão diferentes. Digite novamente.');return}
    setBusy(true);message('Criando sua conta, confira a mensagem aqui...');
    try{
-    await rest('/auth/v1/signup',{method:'POST',body:JSON.stringify({email,password})});
+    const created=await rest('/auth/v1/signup',{method:'POST',body:JSON.stringify({email,password})});
     el('bmwGatePassword').value='';el('bmwGateConfirm').value='';
     signupMode=false;setBusy(false);setSignupMode(false);
-    message('Pedido de cadastro recebido! Confira seu e-mail (inclusive spam) e confirme a conta. Depois use Entrar e solicite aprovação ao gestor.');
+    if(created?.access_token&&created?.refresh_token){
+     storeAuth(created,false);
+     message('Conta criada! Selecione seu nome e solicite acesso à gestão.');
+     await checkSession();
+    }else{
+     message('Cadastro enviado, mas o servidor ainda exige confirmação por e-mail. A gestão precisa desativar Confirm email no Supabase antes de novos cadastros.');
+    }
    }catch(error){rateLimit(error)}
    finally{setBusy(false);if(signupMode&&Date.now()<signupBlockUntil)el('bmwGateEnter').disabled=true}
    return;
@@ -170,9 +176,9 @@
   }catch(error){
    const raw=String(error?.message||error||'');
    if(/invalid login credentials|invalid credentials/i.test(raw)){
-    message('Conta não encontrada ou senha incorreta. Se este é seu primeiro acesso, clique em Criar conta. Depois confirme o e-mail e entre novamente.');
+    message('Conta não encontrada ou senha incorreta. Se este é seu primeiro acesso, clique em Criar conta. Depois entre com sua senha.');
    }else if(/email not confirmed/i.test(raw)){
-    message('Seu e-mail ainda não foi confirmado. Abra a mensagem recebida e confirme antes de entrar.');
+    message('A confirmação de e-mail ainda está ligada no servidor. A gestão precisa desativar Confirm email no Supabase para liberar o cadastro sem e-mail.');
    }else{
     message('Não foi possível entrar: '+raw);
    }
