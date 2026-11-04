@@ -97,7 +97,7 @@ body.bmw-authorized #bmwGate{display:none!important}
 <p><b>Entre na competição.</b> Gestores entram diretamente com suas contas. Os demais profissionais precisam de aprovação de Raphael ou Luis.</p>
 <div id="bmwGateTopMessage" role="status" aria-live="polite" style="display:none;padding:12px;margin:12px 0;border:1px solid #d9a65a;border-radius:10px;color:#ffe0a0;background:#27354b;font-weight:700"></div><form id="bmwGateForm"><label for="bmwGateEmail">Seu e-mail</label><input id="bmwGateEmail" type="email" autocomplete="email" placeholder="seuemail@exemplo.com" required>
 <label for="bmwGatePassword">Sua senha</label><input id="bmwGatePassword" type="password" minlength="8" autocomplete="current-password" placeholder="Senha individual" required><div id="bmwGateConfirmWrap" style="display:none"><label for="bmwGateConfirm">Confirme sua senha</label><input id="bmwGateConfirm" type="password" minlength="8" autocomplete="new-password" placeholder="Repita a senha"></div>
-<div class="bmw-gate-actions"><button class="bmw-gate-btn primary" type="submit" id="bmwGateEnter">Entrar</button><button class="bmw-gate-btn" type="button" id="bmwGateSignup">Criar conta</button><button class="bmw-gate-btn" type="button" id="bmwGateReset">Recuperar senha</button></div></form>
+<div class="bmw-gate-actions"><button class="bmw-gate-btn primary" type="submit" id="bmwGateEnter" onclick="var m=document.getElementById('bmwGateTopMessage');m.style.display='block';m.textContent='Botão acionado. Validando o formulário e a conexão...';">Entrar</button><button class="bmw-gate-btn" type="button" id="bmwGateSignup">Criar conta</button><button class="bmw-gate-btn" type="button" id="bmwGateReset">Recuperar senha</button></div></form>
 <p>Quem já possui uma conta de gestor pode entrar usando o e-mail e a senha cadastrados.</p>
 </div>
 <div id="bmwGateRequest"><h2>Solicitar aprovação</h2><p id="bmwGateAccount"></p><label for="bmwGateProfessional">Selecione seu nome na equipe</label><select id="bmwGateProfessional"></select>
@@ -299,6 +299,10 @@ document.addEventListener('DOMContentLoaded',()=>{
  const form=document.getElementById('bmwGateForm'),btn=document.getElementById('bmwGateEnter'),msg=document.getElementById('bmwGateTopMessage');
  if(!form||!btn||!msg)return;
  const report=s=>{msg.textContent=s;msg.style.display='block'};
+ // Diagnóstico direto, inclusive quando um script externo falhar.
+ window.addEventListener('error',e=>{if(!document.body.classList.contains('bmw-authorized'))report('Falha ao carregar o aplicativo: '+(e.message||'script indisponível'))});
+ form.addEventListener('submit',()=>report('Formulário enviado. Conferindo autorização...'),true);
+
  btn.addEventListener('click',()=>{
   const email=document.getElementById('bmwGateEmail').value.trim(),pass=document.getElementById('bmwGatePassword').value;
   if(!email||!pass)report('Preencha e-mail e senha.');
@@ -311,7 +315,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <script src='./bonus-breakdown.js'></script>
 <script src='./arena.js?v=arena-management-v17'></script>
 <script src='./rules-cards.js?v=rules3'></script>
-<script src='./auth-gate.js?v=gate-manager-login-v14'></script>
+<script src='./auth-gate.js?v=gate-manager-login-v15'></script>
 
 <script src='./result-social.js?v=social2'></script>
 <script src='./add-professional.js?v=add2'></script>
