@@ -319,9 +319,11 @@
  approveShortcut.onclick=()=>{
   nav('management');
   const panel=el('arenaManage');
+  panel.classList.remove('hidden');
   panel.open=true;
-  review().catch(e=>setmsg('Aprovações: '+e.message));
+  el('arenaReviewList').textContent='Carregando solicitações de acesso...';
   panel.scrollIntoView?.({behavior:'smooth',block:'start'});
+  review().catch(e=>{el('arenaReviewList').textContent='Erro ao carregar aprovações: '+e.message;});
  };
  const management=document.getElementById('management');
  if(management){
@@ -329,5 +331,16 @@
   management.insertBefore(approveShortcut,heading?.nextSibling||management.firstChild);
   // O painel precisa estar na seção Gestão; dentro da Arena ele ficava oculto ao navegar.
   management.insertBefore(el('arenaManage'),approveShortcut.nextSibling);
+  const approvalPanel=el('arenaManage');
+  approvalPanel.open=true;
+  const refreshApprovals=()=>{
+   if(!admin||management.classList.contains('hidden'))return;
+   approvalPanel.classList.remove('hidden');
+   if(!el('arenaReviewList').textContent.trim())el('arenaReviewList').textContent='Carregando solicitações...';
+   review().catch(e=>{el('arenaReviewList').textContent='Erro ao carregar aprovações: '+e.message;});
+  };
+  document.querySelectorAll('[data-tab="management"]').forEach(b=>b.addEventListener('click',()=>setTimeout(refreshApprovals,0)));
+  setTimeout(refreshApprovals,500);
+  setInterval(refreshApprovals,60000);
  }
 })();
