@@ -106,7 +106,7 @@
    setmsg('Solicitação enviada! Aguarde aprovação de Raphael ou Luis.');await connect();
   }catch(e){setmsg('Não foi possível solicitar aprovação: '+e.message)}
  };
- async function leave(){local=null;user=null;member=null;localStorage.removeItem('bmw-x1-arena-auth');renderAccess();setmsg('Você saiu da sua conta da Arena.')}
+ async function leave(){const access=local?.access_token;local=null;user=null;member=null;localStorage.removeItem('bmw-x1-arena-auth');renderAccess();setmsg('Você saiu da sua conta da Arena.');if(access)try{await rest('/auth/v1/logout',{method:'POST',headers:{Authorization:'Bearer '+access}})}catch{}}
  el('arenaLeave').onclick=leave;el('arenaLogout').onclick=leave;
  const age=iso=>{try{return new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}catch{return ''}};
  async function loadFeed(){
