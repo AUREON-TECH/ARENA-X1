@@ -11,7 +11,7 @@
  '<div id="arenaStatus" class="arena-status" role="status"></div>'+
  '<div id="arenaAccess"><div class="arena-card"><h3>Entre na disputa</h3><p>Crie sua conta com seu e-mail. Depois da confirmação, solicite aprovação para participar.</p>'+
  '<form id="arenaAuthForm"><label>E-mail<input id="arenaEmail" type="email" autocomplete="email" required placeholder="voce@exemplo.com"></label><label>Senha<input id="arenaPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="Sua senha"></label>'+
- '<div class="arena-buttons"><button class="btn primary" type="submit">Entrar</button><button class="btn" id="arenaSignup" type="button">Criar conta</button></div></form><p class="arena-hint">A conta não libera o mural automaticamente. Raphael ou Luis precisa aprovar seu perfil. Nunca compartilhe sua senha.</p></div></div>'+
+ '<div class="arena-buttons"><button class="btn primary" type="submit">Entrar</button><button class="btn" id="arenaSignup" type="button">Criar conta</button><button class="btn small" id="arenaRecover" type="button">Esqueci a senha</button></div></form><p class="arena-hint">A conta não libera o mural automaticamente. Raphael ou Luis precisa aprovar seu perfil. Nunca compartilhe sua senha.</p></div></div>'+
  '<div id="arenaWaiting" class="arena-card hidden"><h3>Solicitação de acesso</h3><p id="arenaMemberInfo"></p><div id="arenaRequestArea"><label>Selecione seu nome na competição<select id="arenaProfessional"></select></label><button class="btn primary" id="arenaRequest" type="button">Solicitar aprovação</button></div><button class="btn small" id="arenaLeave" type="button">Sair desta conta</button></div>'+
  '<div id="arenaFeedArea" class="hidden"><div class="arena-compose"><div class="arena-authrow"><span id="arenaIdentity"></span><div class="arena-buttons"><button class="btn small" id="arenaReload" type="button">↻ Atualizar</button><button class="btn small" id="arenaLogout" type="button">Sair</button></div></div><form id="arenaPostForm"><textarea id="arenaPostText" rows="2" maxlength="50" placeholder="Seu desafio em até 50 caracteres..." required></textarea><div class="arena-buttons"><span id="arenaPostCount">0 / 50</span><button class="btn primary" type="submit">Publicar desafio</button></div></form></div><div id="arenaFeed"></div></div>'+
  '<div id="arenaManage" class="arena-card hidden"><div class="arena-authrow"><h3>Solicitações de acesso</h3><button class="btn small" id="arenaReviewReload">Atualizar solicitações</button></div><div id="arenaReviewList"></div><h3 style="margin-top:20px">Moderação de mensagens</h3><div id="arenaModPosts"></div><p class="arena-hint">Só aprove o perfil após confirmar que a pessoa corresponde ao profissional indicado. O banco impede dois perfis aprovados com o mesmo nome.</p></div>';
@@ -89,6 +89,14 @@
    el('arenaPassword').value='';
    setmsg('Cadastro solicitado. Confira seu e-mail, confirme a conta e depois entre para pedir aprovação.');
   }catch(e){setmsg('Não foi possível cadastrar: '+e.message)}
+ };
+ el('arenaRecover').onclick=async()=>{
+  const email=el('arenaEmail').value.trim().toLowerCase();
+  if(!email)return setmsg('Informe seu e-mail para recuperar a senha.');
+  try{
+   await rest('/auth/v1/recover',{method:'POST',body:JSON.stringify({email})});
+   setmsg('Se o e-mail estiver cadastrado, você receberá instruções para recuperar a senha.');
+  }catch(e){setmsg('Recuperação de senha: '+e.message)}
  };
  el('arenaRequest').onclick=async()=>{
   const professional=el('arenaProfessional').value;
