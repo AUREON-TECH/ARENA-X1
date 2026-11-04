@@ -244,6 +244,12 @@
  try{
   gateSession=JSON.parse(sessionStorage.getItem('bmwx1-auth')||'null')||JSON.parse(localStorage.getItem('bmw-x1-arena-auth')||'null');
  }catch{gateSession=null}
- if(gateSession)checkSession();
- else{show('bmwGateAuth');message('Acesso restrito a profissionais aprovados e gestores.')}
+ if(gateSession){
+  show('bmwGateAuth');
+  message('🔐 Restaurando seu acesso com segurança...');
+  checkSession();
+ }else{
+  show('bmwGateAuth');
+  message('Acesso restrito a profissionais aprovados e gestores.');
+ }
 })();
