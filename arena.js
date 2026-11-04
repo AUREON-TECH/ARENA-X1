@@ -133,7 +133,7 @@
    setmsg('Enviando cadastro...');
    await rest('/auth/v1/signup',{method:'POST',body:JSON.stringify({email,password})});
    el('arenaPassword').value='';
-   setmsg('Solicitação recebida. Se a conta for nova, confirme pelo e-mail recebido; depois use Entrar para solicitar aprovação. Não clique novamente em Criar conta.');
+   setmsg('Cadastro enviado. Entre com seu e-mail e senha na tela inicial e acompanhe a aprovação da gestão. Não é necessário confirmar por e-mail quando essa opção estiver desativada no Supabase.');
   }catch(e){handleSignupError(e)}finally{if(Date.now()>=signupCooldownUntil)btn.disabled=false}
  };
  el('arenaRecover').onclick=async()=>{
