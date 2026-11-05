@@ -1,10 +1,10 @@
 {
-  "id": "/BMW-X1/",
+  "id": "/ARENA-X1/",
   "name": "ARENA X1 — Competição BMW X1",
   "short_name": "ARENA X1",
   "description": "ARENA X1: ranking, desempenho, desafios e comunidade da competição pelo prêmio BMW X1.",
-  "start_url": "/BMW-X1/",
-  "scope": "/BMW-X1/",
+  "start_url": "/ARENA-X1/",
+  "scope": "/ARENA-X1/",
   "display": "standalone",
   "background_color": "#09111d",
   "theme_color": "#0b1527",
