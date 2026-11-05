@@ -28,7 +28,8 @@
   signupMode=active;
   el('bmwGateConfirmWrap').style.display=active?'block':'none';
   signupField.style.display=active?'block':'none';
-  el('bmwSignupProfessional').required=active;
+  el('bmwSignupProfessional').required=active&&el('bmwGateEmail').value.trim().toLowerCase()!=='alexandredamasn@gmail.com';
+  signupField.style.display=active&&el('bmwGateEmail').value.trim().toLowerCase()==='alexandredamasn@gmail.com'?'none':active?'block':'none';
   if(active)prepareSignupRoster().catch(e=>message('Não foi possível carregar os profissionais: '+e.message));
   el('bmwGateConfirm').required=active;
   el('bmwGatePassword').autocomplete=active?'new-password':'current-password';
@@ -77,6 +78,7 @@
   const rows=await rest('/rest/v1/bmw_x1_admin_allowlist?select=email&limit=1',{headers:baseHeaders(t)});
   return Array.isArray(rows)&&rows.length===1;
  }
+ async function isViewer(t){const rows=await rest('/rest/v1/bmw_x1_viewers?select=email&limit=1',{headers:baseHeaders(t)});return Array.isArray(rows)&&rows.length>0}
  async function getMember(t,id){
   const rows=await rest('/rest/v1/bmw_x1_members?select=professional,status,requested_at&user_id=eq.'+encodeURIComponent(id),{headers:baseHeaders(t)});
   return Array.isArray(rows)?rows[0]||null:null;
@@ -128,6 +130,9 @@
     await enableApp(true);
     return;
    }
+   if(await isViewer(t)){
+    member=null;storeAuth(gateSession,false);message('Acesso de visualização autorizado.');await enableApp(false);return;
+   }
    member=await getMember(t,user.id);
    if(member?.status==='approved'){
     storeAuth(gateSession,false);
@@ -172,7 +177,7 @@
   if(signupMode){
    if(Date.now()<signupBlockUntil){rateLimit(new Error('For security purposes, you can only request this after '+Math.ceil((signupBlockUntil-Date.now())/1000)+' seconds.'));return}
    signupProfessional=el('bmwSignupProfessional').value;
-   if(!signupProfessional){message('Selecione seu nome na equipe para solicitar aprovação.');return}
+   if(!signupProfessional&&email!=='alexandredamasn@gmail.com'){message('Selecione seu nome na equipe para solicitar aprovação.');return}
    if(password.length<8||password!==el('bmwGateConfirm').value){message(password.length<8?'A senha precisa ter pelo menos oito caracteres.':'As duas senhas estão diferentes. Digite novamente.');return}
    setBusy(true);message('Criando sua conta, confira a mensagem aqui...');
    try{
@@ -184,6 +189,9 @@
      try{
       const identity=await rest('/auth/v1/user',{headers:baseHeaders(created.access_token)});
       if(!identity?.id)throw Error('Identidade não confirmada.');
+      if(String(identity.email||'').toLowerCase()==='alexandredamasn@gmail.com'){
+       await checkSession();message('Conta de Alexandre Damas criada. Acesso de visualização autorizado.');return;
+      }
       await submitPendingRequest(created.access_token,identity,signupProfessional);
       member={professional:signupProfessional,status:'pending'};
       pendingScreen();
@@ -217,6 +225,7 @@
   }
   finally{setBusy(false)}
  };
+ el('bmwGateEmail').addEventListener('input',()=>{if(signupMode){const viewer=el('bmwGateEmail').value.trim().toLowerCase()==='alexandredamasn@gmail.com';signupField.style.display=viewer?'none':'block';el('bmwSignupProfessional').required=!viewer;}});
  el('bmwGateSignup').onclick=()=>setSignupMode(!signupMode);
  el('bmwGateReset').onclick=async()=>{
   const email=el('bmwGateEmail').value.trim().toLowerCase();
