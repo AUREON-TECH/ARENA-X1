@@ -315,7 +315,7 @@ document.getElementById('saveBtn').onclick=save;document.getElementById('reloadB
 document.getElementById('installBtn').onclick=()=>{if(window.installPrompt){window.installPrompt.prompt();window.installPrompt=null}else alert('Android: Chrome → menu ⋮ → Instalar app. iPhone: Safari → Compartilhar → Adicionar à Tela de Início.')};
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.installPrompt=e});
 menu();
-if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=33',{updateViaCache:'none'}).then(w=>w.update()).catch(()=>{}));
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=35',{updateViaCache:'none'}).then(w=>w.update()).catch(()=>{}));
 
 </script>
 <script>
