@@ -25,7 +25,7 @@
   const find=id=>ruleData.find(x=>x.id===id);
   const general=find('geral'),roles=[['captador','cap','🔵 CAPTAÇÃO'],['consultor','con','🟣 CONSULTORIA'],['closer','clo','🟡 CLOSER']];
   body.innerHTML='<div class="rules-intro"><div><h3>🏆 Regulamento BMW X1</h3><p>De 1º de julho a 31 de dezembro de 2026 · '+people.length+' profissionais</p></div><span class="tag">🔒 Área exclusiva da gestão</span></div>'+
-    (general?render(general,'general','📌 REGRAS GERAIS'):'')+
+    '<div class="rules-intro" style="border:2px solid #f0c56a;background:#322a1d"><div><h3>REGRA DEFINITIVA: VGV LÍQUIDO</h3><p style="font-size:14px;color:#ffe4ad">Cancelamentos NÃO contam para VGV, XP por vendas e classificação. Em 31/12/2026, todas as vendas serão conferidas, os contratos cancelados excluídos e o ranking recalculado antes do resultado final.</p></div></div>'+ (general?render(general,'general','📌 REGRAS GERAIS'):'')+
     '<div class="rules-cards">'+roles.map(item=>{const rule=find(item[0]);return rule?render(rule,item[1],item[2]):''}).join('')+'</div>'+
     '<p class="rules-private-note">Informações consultadas após login autorizado de Raphael ou Luis. A gestão é responsável pelas correções e auditorias.</p>';
  };
