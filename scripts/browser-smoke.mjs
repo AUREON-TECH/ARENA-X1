@@ -5,6 +5,7 @@ const baseUrl = process.env.ARENA_URL || 'https://aureon-tech.github.io/ARENA-X1
 const expectedBuild = 'arena-x1-v47';
 const browser = await chromium.launch({ headless: true, channel: 'chrome' });
 const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+const page = await context.newPage();
 const pageErrors = [];
 const unsafeRequests = [];
 let signupRequests = 0;
