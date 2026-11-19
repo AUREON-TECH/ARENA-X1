@@ -171,15 +171,15 @@ try {
         requested_at: '2026-11-19T18:00:00Z',
         requester_email: 'pendente@example.invalid'
       };
-      const currentMember = {
+      const currentMember = mode === 'request' ? null : {
         user_id: currentId,
         professional: 'Profissional Teste',
-        status: mode === 'pending' ? 'pending' : 'approved',
+        status: mode === 'pending' ? 'pending' : mode === 'rejected' ? 'rejected' : 'approved',
         requested_at: '2026-11-19T17:00:00Z',
         requester_email: email
       };
       const state = {
-        members: adminMode ? [pending, approved] : [currentMember],
+        members: adminMode ? [pending, approved] : currentMember ? [currentMember] : [],
         posts: [{
           id: 1,
           user_id: adminMode ? approvedId : currentId,
@@ -192,6 +192,8 @@ try {
         comments: [],
         likes: [],
         reactions: [],
+        resultComments: [],
+        resultLikes: [],
         writes: [],
         nextPostId: 2,
         nextCommentId: 1,
@@ -344,8 +346,33 @@ try {
             return empty();
           }
         }
-        if (path.endsWith('/rest/v1/bmw_x1_result_comments') || path.endsWith('/rest/v1/bmw_x1_result_likes')) {
-          return json([]);
+        if (path.endsWith('/rest/v1/bmw_x1_result_comments')) {
+          if (method === 'GET') return json(state.resultComments);
+          if (method === 'POST') {
+            state.resultComments.push({
+              ...body,
+              id: state.resultComments.length + 1,
+              created_at: '2026-11-19T18:12:00Z'
+            });
+            return empty(201);
+          }
+          if (method === 'DELETE') {
+            state.resultComments = state.resultComments.filter(item => item.id !== Number(idParam('id')));
+            return empty();
+          }
+        }
+        if (path.endsWith('/rest/v1/bmw_x1_result_likes')) {
+          if (method === 'GET') return json(state.resultLikes);
+          if (method === 'POST') {
+            state.resultLikes.push(body);
+            return empty(201);
+          }
+          if (method === 'DELETE') {
+            state.resultLikes = state.resultLikes.filter(item =>
+              !(item.professional === idParam('professional') && item.user_id === idParam('user_id'))
+            );
+            return empty();
+          }
         }
         return json([]);
       };
@@ -388,13 +415,38 @@ try {
         return;
       }
 
-      if (mode === 'pending') {
+      if (mode === 'request') {
+        await mockPage.waitForFunction(
+          () => document.getElementById('bmwGateRequest')?.style.display === 'block',
+          null,
+          { timeout: 15000 }
+        );
+        await mockPage.locator('#bmwGateProfessional').selectOption({ index: 0 });
+        await mockPage.locator('#bmwGateRequestButton').click();
+        await mockPage.waitForFunction(
+          () => window.__mockState.members.length === 1 &&
+            window.__mockState.members[0].status === 'pending',
+          null,
+          { timeout: 10000 }
+        );
+        const requestState = await mockPage.evaluate(() => window.__mockState);
+        assert.equal(requestState.writes.filter(x => x.path.endsWith('/bmw_x1_members') && x.method === 'POST').length, 1);
+        assert.deepEqual(mockErrors, [], 'Approval request mock browser errors: ' + mockErrors.join('; '));
+        console.log('BMW X1 mocked Chromium flow PASS: confirmed account submits a pending approval request in memory only.');
+        return;
+      }
+
+      if (mode === 'pending' || mode === 'rejected') {
         await mockPage.waitForFunction(
           () => document.getElementById('bmwGatePending')?.style.display === 'block',
           null,
           { timeout: 15000 }
         );
-        assert.match(await mockPage.locator('#bmwGatePendingText').innerText(), /Raphael ou Luis precisa aprovar/i);
+        if (mode === 'pending') {
+          assert.match(await mockPage.locator('#bmwGatePendingText').innerText(), /Raphael ou Luis precisa aprovar/i);
+        } else {
+          assert.match(await mockPage.locator('#bmwGatePendingTitle').innerText(), /Acesso não aprovado/i);
+        }
         await mockPage.evaluate(() => window.nav('arena'));
         assert.equal(await mockPage.locator('#arena').evaluate(el => el.classList.contains('hidden')), true);
         const pendingState = await mockPage.evaluate(() => window.__mockState);
@@ -458,6 +510,31 @@ try {
           null,
           { timeout: 15000 }
         );
+
+        await mockPage.locator('[data-tab="professional"]').click();
+        await mockPage.waitForFunction(
+          () => document.getElementById('resultSocial')?.innerText.includes('Torcida e comentários'),
+          null,
+          { timeout: 15000 }
+        );
+        await mockPage.waitForFunction(
+          () => document.getElementById('socialLike') && document.getElementById('socialCommentForm'),
+          null,
+          { timeout: 10000 }
+        );
+        await mockPage.locator('#socialLike').click();
+        await mockPage.waitForFunction(
+          () => window.__mockState.resultLikes.length === 1,
+          null,
+          { timeout: 10000 }
+        );
+        await mockPage.locator('#socialCommentText').fill('Parabéns pelo resultado!');
+        await mockPage.locator('#socialCommentForm button[type="submit"]').click();
+        await mockPage.waitForFunction(
+          () => window.__mockState.resultComments.length === 1,
+          null,
+          { timeout: 10000 }
+        );
       } else {
         await mockPage.waitForFunction(
           () => document.getElementById('arenaReviewList')?.innerText.includes('Profissional Pendente'),
@@ -509,7 +586,9 @@ try {
   };
 
   await runMockFlow('signup');
+  await runMockFlow('request');
   await runMockFlow('pending');
+  await runMockFlow('rejected');
   await runMockFlow('member');
   await runMockFlow('member-expiring');
   await runMockFlow('admin-raphael');
