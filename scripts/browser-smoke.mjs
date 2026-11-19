@@ -75,8 +75,12 @@ try {
     const registration = await navigator.serviceWorker.getRegistration();
     return Boolean(registration?.active);
   }, null, { timeout: 45000 });
-  const swUrl = await page.evaluate(async () => (await navigator.serviceWorker.getRegistration())?.active?.scriptURL || '');
-  assert.match(swUrl, /\/ARENA-X1\/sw\.js(?:\?.*)?$/);
+  const swInfo = await page.evaluate(async () => {
+    const registration = await navigator.serviceWorker.getRegistration();
+    return { scope: registration?.scope || '', state: registration?.active?.state || '' };
+  });
+  assert.match(swInfo.scope, /\/ARENA-X1\/$/);
+  assert.equal(swInfo.state, 'activated');
   const swResponse = await context.request.get(new URL('sw.js?v=47', baseUrl).toString());
   assert.equal(swResponse.status(), 200, 'Service Worker must load');
   assert.match(await swResponse.text(), /arena-x1-stable-v47/);
