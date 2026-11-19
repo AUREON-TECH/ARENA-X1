@@ -47,7 +47,8 @@ assert.match(html,/id="bmwGate"/);
 assert.match(html,/id="eligibleCount"/);
 assert.doesNotMatch(html,/valid\.length!==37/);
 const arena=read('arena.js');
-assert.match(arena,/maxlength="50"/);
+assert.match(arena,/data-max-codepoints="50"/);
+assert.match(arena,/chars\.slice\(0,50\)\.join\(''\)/);
 assert.match(arena,/await window\.bmwAppToken/);
 assert.match(arena,/!accessGranted/);
 assert.match(arena,/arenaModPosts/);
@@ -57,7 +58,7 @@ const gate=read('auth-gate.js');
 for(const pattern of [/isManager/,/getMember/,/checkSession/,/bmwGatePending/,/await refresh\(\)/,/window\.bmwLogout/])
  assert.match(gate,pattern);
 const social=read('result-social.js');
-for(const pattern of [/bmw_x1_result_comments/,/bmw_x1_result_likes/,/maxlength="50"/,/currentMember\?\.write|currentMember\.write/])
+for(const pattern of [/bmw_x1_result_comments/,/bmw_x1_result_likes/,/data-max-codepoints="50"/,/Array\.from\(msg\)\.length>50/,/chars\.slice\(0,50\)\.join\(''\)/,/currentMember\?\.write|currentMember\.write/])
  assert.match(social,pattern);
 
 assert.match(html,/data-tab="arena"[^>]*id="arenaTab"/);

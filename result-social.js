@@ -43,10 +43,12 @@
   '<div class="results-social-tools">'+
    (canWrite?'<button class="btn" id="socialLike">'+(liked?'❤️ Curtido':'🤍 Curtir')+' · '+likes.length+'</button>':'<span>❤️ '+likes.length+' curtidas</span>')+
    '<span>'+comments.length+' comentários</span><button class="btn" id="socialReload">↻ Atualizar</button></div>'+
-   (canWrite?'<form id="socialCommentForm"><input id="socialCommentText" maxlength="50" required placeholder="Parabenize, motive ou provoque com respeito..." aria-label="Escrever comentário"><button class="btn primary" type="submit">Comentar</button></form>':'')+
+   (canWrite?'<form id="socialCommentForm"><input id="socialCommentText" data-max-codepoints="50" required placeholder="Parabenize, motive ou provoque com respeito..." aria-label="Escrever comentário"><button class="btn primary" type="submit">Comentar</button></form>':'')+
    '<p id="resultSocialStatus" class="social-message" aria-live="polite"></p>'+
    '<div class="social-list">'+comments.map(c=>'<div class="social-entry"><strong>'+esc(c.author)+'</strong> <small> · '+esc(niceDate(c.created_at))+'</small><div>'+esc(c.body)+'</div>'+
     ((c.user_id===currentUser?.id||admin)?'<button class="btn" data-socialdelete="'+c.id+'">Excluir</button>':'')+'</div>').join('')+'</div>';
+  const commentField=document.getElementById('socialCommentText');
+  if(commentField)commentField.oninput=()=>{const chars=Array.from(commentField.value);if(chars.length>50)commentField.value=chars.slice(0,50).join('')};
   document.getElementById('socialReload').onclick=loadSocial;
   if(canWrite){
    document.getElementById('socialLike').onclick=async()=>{
@@ -60,7 +62,7 @@
    document.getElementById('socialCommentForm').onsubmit=async e=>{
     e.preventDefault();
     const field=document.getElementById('socialCommentText'),msg=field.value.trim(),btn=e.target.querySelector('button');
-    if(!msg||msg.length>50)return status('Use entre 1 e 50 caracteres.');
+    if(!msg||Array.from(msg).length>50)return status('Use entre 1 e 50 caracteres.');
     if(requesting)return;requesting=true;btn.disabled=true;
     try{const t=await window.bmwAppToken();
      await api('bmw_x1_result_comments',t,{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({professional:p,user_id:currentUser.id,author:currentMember.author,body:msg})});
