@@ -34,7 +34,7 @@ const gate=read('auth-gate.js');
 for(const pattern of [/isManager/,/getMember/,/checkSession/,/bmwGatePending/,/await refresh\(\)/,/window\.bmwLogout/])
  assert.match(gate,pattern);
 const social=read('result-social.js');
-for(const pattern of [/bmw_x1_result_comments/,/bmw_x1_result_likes/,/maxlength="50"/,/currentMember\.write/])
+for(const pattern of [/bmw_x1_result_comments/,/bmw_x1_result_likes/,/maxlength="50"/,/currentMember\?\.write|currentMember\.write/])
  assert.match(social,pattern);
 const add=read('add-professional.js');
 assert.match(add,/rpc\/bmw_x1_add_professional/);
