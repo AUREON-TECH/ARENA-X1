@@ -107,6 +107,8 @@
  }
  function renderAccess(){
   const allowed=member?.status==='approved'||admin;
+  const arenaTab=el('arenaTab');
+  if(arenaTab)arenaTab.classList.toggle('hidden',accessGranted&&!admin&&member?.status!=='approved');
   el('arenaAccess').classList.add('hidden');
   el('arenaWaiting').classList.add('hidden');
   el('arenaFeedArea').classList.toggle('hidden',!accessGranted||!allowed);
@@ -180,7 +182,7 @@
    setmsg('Enviando cadastro...');
    await rest('/auth/v1/signup',{method:'POST',body:JSON.stringify({email,password})});
    el('arenaPassword').value='';
-   setmsg('Cadastro enviado. Entre com seu e-mail e senha na tela inicial e acompanhe a aprovação da gestão. Não é necessário confirmar por e-mail quando essa opção estiver desativada no Supabase.');
+   setmsg('Cadastro enviado. Verifique seu e-mail e confirme a conta se o Supabase solicitar. Depois entre pela tela inicial e aguarde a aprovação de Raphael ou Luis.');
   }catch(e){handleSignupError(e)}finally{if(Date.now()>=signupCooldownUntil)btn.disabled=false}
  };
  el('arenaRecover').onclick=async()=>{
@@ -312,8 +314,14 @@
   if(!accessGranted)return;
   el('arenaFeedArea').classList.remove('hidden');
   setmsg('Abrindo seu Mural...');
-  connect().catch(e=>setmsg('Não foi possível abrir o Mural: '+e.message));
-  if(admin)review().catch(e=>setmsg('Aprovações: '+e.message));
+  return connect().then(()=>{
+   if(!admin&&member?.status!=='approved'){
+    el('arenaTab')?.classList.add('hidden');
+    if(typeof nav==='function')nav('ranking');
+    return;
+   }
+   if(admin)review().catch(e=>setmsg('Aprovações: '+e.message));
+  }).catch(e=>setmsg('Não foi possível abrir o Mural: '+e.message));
  };
  // O clique da Arena é tratado exclusivamente pela navegação central do aplicativo.
  setInterval(()=>{if(el('arena').classList.contains('hidden')||(member?.status!=='approved'&&!admin))return;if(document.activeElement===el('arenaPostText')||document.activeElement?.closest('.arena-comment-form'))return;loadFeed().catch(()=>{})},30000);
