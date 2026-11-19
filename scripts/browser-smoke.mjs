@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 
 const baseUrl = process.env.ARENA_URL || 'https://aureon-tech.github.io/ARENA-X1/';
-const expectedBuild = 'arena-x1-v46';
+const expectedBuild = 'arena-x1-v47';
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
 const pageErrors = [];
@@ -39,7 +39,8 @@ try {
     try {
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 45000 });
       const build = await page.locator('meta[name="arena-build"]').getAttribute('content').catch(() => null);
-      if (build === expectedBuild) {
+      const source = await page.content();
+      if (build === expectedBuild && source.includes("gate.style.display='block'")) {
         deployed = true;
         break;
       }
