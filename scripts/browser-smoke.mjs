@@ -73,7 +73,7 @@ try {
 
   await page.waitForFunction(async () => {
     const registration = await navigator.serviceWorker.getRegistration();
-    return Boolean(registration?.active);
+    return registration?.active?.state === 'activated';
   }, null, { timeout: 45000 });
   const swInfo = await page.evaluate(async () => {
     const registration = await navigator.serviceWorker.getRegistration();
