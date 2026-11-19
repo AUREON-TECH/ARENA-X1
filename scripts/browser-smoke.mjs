@@ -144,6 +144,294 @@ try {
   assert.match(await page.title(), /ARENA X1/i, 'Cached app shell must load offline');
   await context.setOffline(false);
 
+  const runMockFlow = async mode => {
+    const mockContext = await browser.newContext({
+      viewport: { width: 1280, height: 900 },
+      serviceWorkers: 'block'
+    });
+    await mockContext.addInitScript(mode => {
+      const adminMode = mode === 'admin-raphael' || mode === 'admin-luis';
+      const currentId = '11111111-1111-4111-8111-111111111111';
+      const approvedId = '33333333-3333-4333-8333-333333333333';
+      const pendingId = '22222222-2222-4222-8222-222222222222';
+      const email = mode === 'admin-luis' ? 'luisaneto@gmail.com' :
+        mode === 'admin-raphael' ? 'raphaelbueno@gmail.com' : 'profissional@example.invalid';
+      const user = { id: currentId, email };
+      const approved = {
+        user_id: approvedId,
+        professional: 'Profissional Aprovado',
+        status: 'approved',
+        requested_at: '2026-11-19T17:00:00Z',
+        requester_email: 'aprovado@example.invalid'
+      };
+      const pending = {
+        user_id: pendingId,
+        professional: 'Profissional Pendente',
+        status: 'pending',
+        requested_at: '2026-11-19T18:00:00Z',
+        requester_email: 'pendente@example.invalid'
+      };
+      const currentMember = {
+        user_id: currentId,
+        professional: 'Profissional Teste',
+        status: 'approved',
+        requested_at: '2026-11-19T17:00:00Z',
+        requester_email: email
+      };
+      const state = {
+        members: adminMode ? [pending, approved] : [currentMember],
+        posts: [{
+          id: 1,
+          user_id: adminMode ? approvedId : currentId,
+          professional: adminMode ? 'Profissional Aprovado' : 'Profissional Teste',
+          body: 'Post de teste',
+          category: 'desafio',
+          pinned: false,
+          created_at: '2026-11-19T18:00:00Z'
+        }],
+        comments: [],
+        likes: [],
+        reactions: [],
+        writes: [],
+        nextPostId: 2,
+        nextCommentId: 1
+      };
+      const session = {
+        access_token: 'mock-access-' + mode,
+        refresh_token: 'mock-refresh-' + mode,
+        expires_at: 4102444800
+      };
+      window.__mockState = state;
+      localStorage.setItem('bmw-x1-arena-auth', JSON.stringify(session));
+      const json = (data, status = 200) => new Response(JSON.stringify(data), {
+        status,
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const empty = (status = 204) => new Response(null, { status });
+      const originalFetch = window.fetch.bind(window);
+      window.fetch = async (input, init = {}) => {
+        const raw = typeof input === 'string' ? input : input?.url || String(input);
+        const url = new URL(raw, location.href);
+        if (!url.hostname.includes('veznreiamwstlulkpocz.supabase.co')) return originalFetch(input, init);
+        const method = String(init.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
+        const path = url.pathname;
+        const body = init.body ? JSON.parse(init.body) : {};
+        const idParam = key => String(url.searchParams.get(key) || '').replace(/^eq\./, '');
+        state.writes.push({ method, path });
+
+        if (path.endsWith('/auth/v1/user')) return json(user);
+        if (path.endsWith('/auth/v1/token')) return json({ ...session, user, expires_in: 3600 });
+        if (path.endsWith('/auth/v1/logout')) return empty();
+        if (path.endsWith('/rest/v1/bmw_x1_admin_allowlist')) {
+          return json(adminMode ? [{ email }] : []);
+        }
+        if (path.endsWith('/rest/v1/bmw_x1_viewers')) return json([]);
+        if (path.endsWith('/rest/v1/bmw_x1_roster')) {
+          return json([
+            { professional: 'Profissional Teste', role: 'CAPTADOR' },
+            { professional: 'Profissional Aprovado', role: 'CONSULTOR' }
+          ]);
+        }
+        if (path.endsWith('/rest/v1/bmw_x1_campaign_snapshot')) {
+          return json([{
+            payload: {
+              data_through: '2026-11-19',
+              records: [{
+                name: 'Profissional Teste',
+                role: 'CAPTADOR',
+                admission_date: '2026-07-01',
+                assiduity_start: '2026-07-01',
+                first_record_date: '2026-07-01',
+                eligibility_start: '2026-07-01',
+                months: [{ month: '2026-11', vgv_net_est: 100000 }]
+              }]
+            }
+          }]);
+        }
+        if (path.endsWith('/rest/v1/bmw_x1_adjustments')) return json([]);
+        if (path.endsWith('/rest/v1/bmw_x1_private_rules')) return json([]);
+        if (path.endsWith('/rest/v1/bmw_x1_members')) {
+          if (method === 'GET') {
+            const filter = url.searchParams.get('user_id');
+            if (filter) return json(state.members.filter(row => row.user_id === idParam('user_id')));
+            return json(state.members);
+          }
+          if (method === 'PATCH') {
+            const row = state.members.find(item => item.user_id === idParam('user_id'));
+            if (row) Object.assign(row, body);
+            return empty();
+          }
+          if (method === 'POST') {
+            state.members.push(body);
+            return empty(201);
+          }
+        }
+        if (path.endsWith('/rest/v1/bmw_x1_posts')) {
+          if (method === 'GET') return json(state.posts);
+          if (method === 'POST') {
+            state.posts.push({
+              ...body,
+              id: state.nextPostId++,
+              pinned: false,
+              created_at: '2026-11-19T18:10:00Z'
+            });
+            return empty(201);
+          }
+          if (method === 'PATCH') {
+            const row = state.posts.find(item => item.id === Number(idParam('id')));
+            if (row) Object.assign(row, body);
+            return empty();
+          }
+          if (method === 'DELETE') {
+            state.posts = state.posts.filter(item => item.id !== Number(idParam('id')));
+            return empty();
+          }
+        }
+        if (path.endsWith('/rest/v1/bmw_x1_comments')) {
+          if (method === 'GET') return json(state.comments);
+          if (method === 'POST') {
+            state.comments.push({
+              ...body,
+              id: state.nextCommentId++,
+              created_at: '2026-11-19T18:11:00Z'
+            });
+            return empty(201);
+          }
+          if (method === 'DELETE') {
+            state.comments = state.comments.filter(item => item.id !== Number(idParam('id')));
+            return empty();
+          }
+        }
+        if (path.endsWith('/rest/v1/bmw_x1_likes')) {
+          if (method === 'GET') return json(state.likes);
+          if (method === 'POST') {
+            state.likes.push(body);
+            return empty(201);
+          }
+          if (method === 'DELETE') {
+            state.likes = state.likes.filter(item =>
+              !(item.post_id === Number(idParam('post_id')) && item.user_id === idParam('user_id'))
+            );
+            return empty();
+          }
+        }
+        if (path.endsWith('/rest/v1/bmw_x1_reactions')) {
+          if (method === 'GET') return json(state.reactions);
+          if (method === 'POST') {
+            state.reactions.push(body);
+            return empty(201);
+          }
+          if (method === 'PATCH') {
+            const row = state.reactions.find(item =>
+              item.post_id === Number(idParam('post_id')) && item.user_id === idParam('user_id')
+            );
+            if (row) Object.assign(row, body);
+            return empty();
+          }
+          if (method === 'DELETE') {
+            state.reactions = state.reactions.filter(item =>
+              !(item.post_id === Number(idParam('post_id')) && item.user_id === idParam('user_id'))
+            );
+            return empty();
+          }
+        }
+        if (path.endsWith('/rest/v1/bmw_x1_result_comments') || path.endsWith('/rest/v1/bmw_x1_result_likes')) {
+          return json([]);
+        }
+        return json([]);
+      };
+    }, mode);
+
+    const mockPage = await mockContext.newPage();
+    const mockErrors = [];
+    mockPage.on('pageerror', error => mockErrors.push(error.message));
+    mockPage.on('dialog', dialog => dialog.accept());
+    try {
+      await mockPage.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      await mockPage.waitForFunction(
+        () => document.body.classList.contains('bmw-authorized'),
+        null,
+        { timeout: 20000 }
+      );
+      assert.equal(await mockPage.locator('#bmwGate').isVisible(), false, mode + ': access gate should close after mocked authorization');
+
+      if (mode === 'member') {
+        await mockPage.locator('#arenaTab').click();
+        await mockPage.waitForFunction(
+          () => !document.getElementById('arenaFeedArea').classList.contains('hidden'),
+          null,
+          { timeout: 15000 }
+        );
+        await mockPage.waitForFunction(
+          () => document.getElementById('arenaFeed')?.innerText.includes('Post de teste'),
+          null,
+          { timeout: 15000 }
+        );
+        await mockPage.locator('#arenaPostCategory').selectOption('desafio');
+        await mockPage.locator('#arenaPostText').fill('Meta batida! 🔥');
+        await mockPage.locator('#arenaPostForm button[type="submit"]').click();
+        await mockPage.waitForFunction(
+          () => document.getElementById('arenaFeed')?.innerText.includes('Meta batida! 🔥'),
+          null,
+          { timeout: 10000 }
+        );
+        await mockPage.locator('[data-like="1"]').click();
+        await mockPage.locator('[data-react="1"][data-emoji="🔥"]').click();
+        await mockPage.locator('[data-commenttoggle="1"]').click();
+        await mockPage.locator('form[data-post="1"] input').fill('Comentário simulado');
+        await mockPage.locator('form[data-post="1"] button[type="submit"]').click();
+        await mockPage.waitForFunction(
+          () => window.__mockState.posts.length === 2 &&
+            window.__mockState.likes.length === 1 &&
+            window.__mockState.reactions.length === 1 &&
+            window.__mockState.comments.length === 1,
+          null,
+          { timeout: 15000 }
+        );
+      } else {
+        await mockPage.waitForFunction(
+          () => document.getElementById('arenaReviewList')?.innerText.includes('Profissional Pendente'),
+          null,
+          { timeout: 15000 }
+        );
+        await mockPage.locator('#arenaReviewList [data-approve]').click();
+        await mockPage.waitForFunction(
+          () => window.__mockState.members.find(row => row.professional === 'Profissional Pendente')?.status === 'approved',
+          null,
+          { timeout: 10000 }
+        );
+        await mockPage.waitForFunction(
+          () => document.getElementById('arenaModPosts')?.innerText.includes('Post de teste'),
+          null,
+          { timeout: 10000 }
+        );
+        await mockPage.locator('#arenaModPosts [data-moderate]').click();
+        await mockPage.waitForFunction(
+          () => window.__mockState.posts.length === 0,
+          null,
+          { timeout: 10000 }
+        );
+        await mockPage.locator('#arenaTab').click();
+        await mockPage.waitForFunction(
+          () => document.getElementById('arenaIdentity')?.innerText.includes(mode === 'admin-luis' ? 'LUIS' : 'RAPHAEL'),
+          mode,
+          { timeout: 10000 }
+        );
+      }
+
+      const mockState = await mockPage.evaluate(() => window.__mockState);
+      assert.ok(mockState.writes.length > 0, mode + ': mocked UI actions should be recorded');
+      assert.deepEqual(mockErrors, [], mode + ': unexpected browser errors: ' + mockErrors.join('; '));
+      console.log('BMW X1 mocked Chromium flow PASS: ' + mode + ' — no production API writes.');
+    } finally {
+      await mockContext.close();
+    }
+  };
+
+  await runMockFlow('member');
+  await runMockFlow('admin-raphael');
+  await runMockFlow('admin-luis');
+
   assert.deepEqual(pageErrors, [], 'Unexpected browser JavaScript errors: ' + pageErrors.join('; '));
   console.log('BMW X1 Chromium smoke: PASS — live page, DOM IDs, Arena gate, password confirmation, roster read, PWA, offline shell, 390/768px responsive; production writes blocked.');
 } finally {
