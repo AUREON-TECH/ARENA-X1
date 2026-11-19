@@ -63,6 +63,7 @@ for(const pattern of [/isManager/,/getMember/,/checkSession/,/bmwGatePending/,/a
 const social=read('result-social.js');
 for(const pattern of [/bmw_x1_result_comments/,/bmw_x1_result_likes/,/data-max-codepoints="50"/,/Array\.from\(msg\)\.length>50/,/chars\.slice\(0,50\)\.join\(''\)/,/currentMember\?\.write|currentMember\.write/])
  assert.match(social,pattern);
+assert.match(social,/if\(!admin&&!auth\.write\)/,'Read-only viewers must not query private social rows');
 
 assert.match(html,/data-tab="arena"[^>]*id="arenaTab"/);
 assert.match(html,/window\.bmwArenaOpen\(\)/);
