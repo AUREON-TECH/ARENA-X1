@@ -17,3 +17,14 @@ jobs:
           node-version: '22'
       - name: Conferir dados e app
         run: node scripts/audit.mjs
+      - name: Install Chromium for browser audit
+        if: github.event_name != 'pull_request'
+        run: |
+          npm init -y
+          npm install --no-save --no-audit --no-fund playwright@1.56.0
+          npx playwright install --with-deps chromium
+      - name: Read-only Chromium smoke
+        if: github.event_name != 'pull_request'
+        env:
+          ARENA_URL: https://aureon-tech.github.io/ARENA-X1/
+        run: node scripts/browser-smoke.mjs
