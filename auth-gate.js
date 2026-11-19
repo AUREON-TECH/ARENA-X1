@@ -273,6 +273,9 @@
     menu();show('bmwGateAuth');message('O acesso de gestor foi revogado.');
     return;
    }
+   // Visualizadores autorizados não possuem linha em bmw_x1_members.
+   // Preserve a sessão enquanto continuarem na allowlist de visualização.
+   if(await isViewer(t))return;
    const u=await rest('/auth/v1/user',{headers:baseHeaders(t)});
    if(!u?.id)return;
    const m=await getMember(t,u.id);
