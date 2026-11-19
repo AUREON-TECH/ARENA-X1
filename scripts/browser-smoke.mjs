@@ -374,7 +374,7 @@ try {
         assert.match(await mockPage.locator('#arenaPostText').inputValue(), /🔥/);
         await mockPage.locator('#arenaPostForm button[type="submit"]').click();
         await mockPage.waitForFunction(
-          () => document.getElementById('arenaFeed')?.innerText.includes('Meta batida! 🔥'),
+          () => document.getElementById('arenaFeed')?.innerText.includes('Meta batida!🔥'),
           null,
           { timeout: 10000 }
         );
