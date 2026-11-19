@@ -6,6 +6,27 @@ const html=read('index.html'),sw=read('sw.js');
 const manifest=JSON.parse(read('manifest.webmanifest'));
 const scripts=['bonus-breakdown.js','arena.js','rules-cards.js','auth-gate.js','result-social.js','add-professional.js'];
 const inline=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+
+function idAttributes(source){
+ return [...source.matchAll(/\s+id\s*=\s*\\?["']([^"'\\]+)\\?["']/g)].map(match=>match[1]);
+}
+const idSources=[
+ ['index.html',html],
+ ['arena.js',read('arena.js')],
+ ['auth-gate.js',read('auth-gate.js')],
+ ['result-social.js',read('result-social.js')],
+ ['add-professional.js',read('add-professional.js')]
+];
+const seenIds=new Map();
+for(const [file,source] of idSources){
+ const ids=idAttributes(source),duplicates=ids.filter((id,index)=>ids.indexOf(id)!==index);
+ assert.equal(duplicates.length,0,file+': IDs duplicados: '+[...new Set(duplicates)].join(', '));
+ for(const id of ids){
+  assert.ok(!seenIds.has(id),'ID "'+id+'" repetido entre '+seenIds.get(id)+' e '+file);
+  seenIds.set(id,file);
+ }
+}
+
 assert.ok(inline,'Script do aplicativo');
 new vm.Script(inline,{filename:'index.html:inline'});
 for(const file of scripts){
@@ -36,6 +57,18 @@ for(const pattern of [/isManager/,/getMember/,/checkSession/,/bmwGatePending/,/a
 const social=read('result-social.js');
 for(const pattern of [/bmw_x1_result_comments/,/bmw_x1_result_likes/,/maxlength="50"/,/currentMember\?\.write|currentMember\.write/])
  assert.match(social,pattern);
+
+assert.match(html,/data-tab="arena"[^>]*id="arenaTab"/);
+assert.match(html,/window\.bmwArenaOpen\(\)/);
+assert.match(gate,/password!==el\('bmwGateConfirm'\)\.value/);
+assert.match(gate,/auth\/v1\/signup/);
+assert.match(arena,/const emojiSet=\['🔥','👏','💪','😂','👀','🏆'\]/);
+assert.match(arena,/data-react=/);
+assert.match(arena,/data-like=/);
+assert.match(arena,/arena-comment-form/);
+assert.match(social,/bmw_x1_result_comments/);
+assert.match(social,/bmw_x1_result_likes/);
+
 const add=read('add-professional.js');
 assert.match(add,/rpc\/bmw_x1_add_professional/);
 assert.match(add,/if\(!admin\)return/);
