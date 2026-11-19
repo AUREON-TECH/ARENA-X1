@@ -379,8 +379,18 @@ try {
           { timeout: 10000 }
         );
         await mockPage.locator('[data-like="1"]').click();
-        await mockPage.locator('[data-react="1"][data-emoji="🔥"]').scrollIntoViewIfNeeded();
+        await mockPage.waitForFunction(
+          () => document.querySelector('[data-like="1"]')?.innerText.includes('Curtido'),
+          null,
+          { timeout: 10000 }
+        );
+        await mockPage.locator('[data-react="1"][data-emoji="🔥"]').waitFor({ state: 'visible', timeout: 10000 });
         await mockPage.locator('[data-react="1"][data-emoji="🔥"]').click();
+        await mockPage.waitForFunction(
+          () => document.querySelector('[data-react="1"][data-emoji="🔥"]')?.classList.contains('active'),
+          null,
+          { timeout: 10000 }
+        );
         await mockPage.locator('[data-commenttoggle="1"]').click();
         await mockPage.locator('form[data-post="1"] input').fill('Comentário simulado');
         await mockPage.locator('form[data-post="1"] button[type="submit"]').click();
