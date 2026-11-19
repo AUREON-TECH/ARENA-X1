@@ -417,7 +417,7 @@ try {
         );
         await mockPage.locator('#arenaTab').click();
         await mockPage.waitForFunction(
-          () => document.getElementById('arenaIdentity')?.innerText.includes(mode === 'admin-luis' ? 'LUIS' : 'RAPHAEL'),
+          expected => document.getElementById('arenaIdentity')?.innerText.includes(expected === 'admin-luis' ? 'LUIS' : 'RAPHAEL'),
           mode,
           { timeout: 10000 }
         );
