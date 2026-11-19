@@ -1,5 +1,5 @@
-const CACHE='arena-x1-stable-v43';
-const SHELL=['./index.html','./manifest.webmanifest','./bmw-icon-192.png','./bmw-icon-512.png'];
+const CACHE='arena-x1-stable-v44';
+const SHELL=['./index.html','./manifest.webmanifest','./bmw-icon-192.png','./bmw-icon-512.png','./icon.svg','./bmw-x1-hero.webp','./arena_x1_hotel_bmw_banner.webp','./bonus-breakdown.js','./arena.js','./rules-cards.js','./auth-gate.js','./result-social.js','./add-professional.js'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)));self.skipWaiting()});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('arena-x1-')&&k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim()});
 self.addEventListener('fetch',event=>{
