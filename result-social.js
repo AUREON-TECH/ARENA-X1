@@ -26,6 +26,11 @@
    const auth=await approved();
    if(!auth||seq!==current)return;
    currentUser=auth.user;currentMember=auth;
+   // Read-only viewers can inspect ranking/results, but RLS intentionally withholds social rows.
+   if(!admin&&!auth.write){
+    box().innerHTML='<h3>💬 Torcida e comentários</h3><p>Comentários e curtidas estão disponíveis apenas para profissionais aprovados.</p>';
+    return;
+   }
    const [allComments,allLikes]=await Promise.all([
     api('bmw_x1_result_comments?select=id,professional,user_id,author,body,created_at&professional=eq.'+number(p)+'&order=created_at.desc&limit=60',auth.jwt),
     api('bmw_x1_result_likes?select=professional,user_id&professional=eq.'+number(p),auth.jwt)
