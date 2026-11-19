@@ -9,7 +9,7 @@ const inline=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 const cacheVersion=sw.match(/arena-x1-stable-v(\d+)/);
 const registrationVersion=html.match(/sw\.js\?v=(\d+)/);
 assert.ok(cacheVersion&&registrationVersion&&cacheVersion[1]===registrationVersion[1],'Service Worker registration/cache versions must match');
-const buildVersion=html.match(/name="arena-build" content="arena-x1-v(\\d+)"/);
+const buildVersion=html.match(/name="arena-build" content="arena-x1-v(\d+)"/);
 assert.ok(buildVersion&&buildVersion[1]===cacheVersion[1],'Arena build metadata and PWA cache versions must match');
 
 function idAttributes(source){
