@@ -195,7 +195,7 @@
       await submitPendingRequest(created.access_token,identity,signupProfessional);
       member={professional:signupProfessional,status:'pending'};
       pendingScreen();
-      message('Cadastro enviado para aprovação dos administradores. Nenhum e-mail de confirmação é necessário.');
+      message('Cadastro enviado para aprovação. Verifique seu e-mail e confirme a conta se o Supabase solicitar; depois aguarde Raphael ou Luis liberar seu acesso.');
      }catch(requestError){
       message('Conta criada, mas o pedido ainda não foi registrado: '+requestError.message+'. Entre com sua senha para concluir a solicitação.');
       await checkSession();
