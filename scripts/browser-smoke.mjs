@@ -492,14 +492,26 @@ try {
       const mockState = await mockPage.evaluate(() => window.__mockState);
       const dml = mockState.writes.filter(item => ['POST', 'PATCH', 'DELETE'].includes(item.method));
       assert.ok(dml.length > 0, mode + ': mocked UI writes should be recorded in memory only');
+      if (mode === 'member-expiring') {
+        assert.equal(mockState.refreshCalls, 1, 'Near-expiry session should refresh its token once');
+      }
       assert.deepEqual(mockErrors, [], mode + ': unexpected browser errors: ' + mockErrors.join('; '));
-      console.log('BMW X1 mocked Chromium flow PASS: ' + mode + ' — no production API writes.');
+      await mockPage.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
+      await mockPage.waitForFunction(
+        () => document.body.classList.contains('bmw-authorized'),
+        null,
+        { timeout: 20000 }
+      );
+      console.log('BMW X1 mocked Chromium flow PASS: ' + mode + ' — session restored; no production API writes.');
     } finally {
       await mockContext.close();
     }
   };
 
+  await runMockFlow('signup');
+  await runMockFlow('pending');
   await runMockFlow('member');
+  await runMockFlow('member-expiring');
   await runMockFlow('admin-raphael');
   await runMockFlow('admin-luis');
 
