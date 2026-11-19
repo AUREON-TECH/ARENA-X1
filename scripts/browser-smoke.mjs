@@ -524,7 +524,8 @@ try {
         );
         await mockPage.locator('#socialLike').click();
         await mockPage.waitForFunction(
-          () => window.__mockState.resultLikes.length === 1,
+          () => window.__mockState.resultLikes.length === 1 &&
+            document.getElementById('socialLike')?.innerText.includes('Curtido'),
           null,
           { timeout: 10000 }
         );
