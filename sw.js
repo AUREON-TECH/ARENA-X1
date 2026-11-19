@@ -1,4 +1,4 @@
-const CACHE='arena-x1-stable-v41';
+const CACHE='arena-x1-stable-v42';
 const SHELL=['./index.html','./manifest.webmanifest','./bmw-icon-192.png','./bmw-icon-512.png'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)));self.skipWaiting()});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('arena-x1-')&&k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim()});
@@ -6,7 +6,7 @@ self.addEventListener('fetch',event=>{
  const req=event.request;if(req.method!=='GET')return;
  const url=new URL(req.url);if(url.origin!==self.location.origin)return;
  if(url.pathname==='/BMW-X1/'||url.pathname==='/BMW-X1/index.html'){
-  event.respondWith(Response.redirect(new URL('/ARENA-X1/',self.location.origin).href,302));return;
+  event.respondWith(Response.redirect('https://aureon-tech.github.io/ARENA-X1/',302));return;
  }
  event.respondWith(fetch(req,{cache:'no-store'}).then(response=>{
   if(response.ok){const copy=response.clone();event.waitUntil(caches.open(CACHE).then(cache=>cache.put(req,copy)).catch(()=>{}))}
