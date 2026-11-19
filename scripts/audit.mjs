@@ -69,6 +69,7 @@ assert.match(social,/if\(!admin&&!auth\.write\)/,'Read-only viewers must not que
 
 assert.match(html,/data-tab="arena"[^>]*id="arenaTab"/);
 assert.match(html,/window\.bmwArenaOpen\(\)/);
+assert.ok(html.includes("gate.style.display='block'"),'Unauthenticated navigation must display the access message');
 assert.match(gate,/password!==el\('bmwGateConfirm'\)\.value/);
 assert.match(gate,/auth\/v1\/signup/);
 assert.match(arena,/const emojiSet=\['🔥','👏','💪','😂','👀','🏆'\]/);
