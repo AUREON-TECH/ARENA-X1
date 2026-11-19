@@ -12,7 +12,9 @@ function idAttributes(source){
 }
 const idSources=[
  ['index.html',html],
+ ['bonus-breakdown.js',read('bonus-breakdown.js')],
  ['arena.js',read('arena.js')],
+ ['rules-cards.js',read('rules-cards.js')],
  ['auth-gate.js',read('auth-gate.js')],
  ['result-social.js',read('result-social.js')],
  ['add-professional.js',read('add-professional.js')]
@@ -75,5 +77,10 @@ assert.match(add,/if\(!admin\)return/);
 const rules=read('rules-cards.js');assert.match(rules,/rules-cards/);
 for(const path of ['index.html','sw.js','manifest.webmanifest'])assert.ok(fs.existsSync(path),path);
 for(const icon of manifest.icons)assert.ok(fs.existsSync(icon.src.replace(/^\.\//,'')),icon.src);
+const shellMatch=sw.match(/const SHELL=\[([\s\S]*?)\];/);
+assert.ok(shellMatch,'Lista de arquivos do pré-cache PWA');
+const shellPaths=[...shellMatch[1].matchAll(/'([^']+)'/g)].map(match=>match[1]);
+assert.equal(shellPaths.length,new Set(shellPaths).size,'Arquivos duplicados no pré-cache PWA');
+for(const path of shellPaths)assert.ok(fs.existsSync(path.replace(/^\.\//,'')),'Arquivo ausente no pré-cache: '+path);
 assert.ok(fs.existsSync('bmw-x1-hero.webp'));
 console.log('BMW X1: código, privacidade, login único, mural, comentários, novos cadastros e PWA verificados.');
