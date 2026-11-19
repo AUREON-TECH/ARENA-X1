@@ -174,7 +174,7 @@ try {
       const currentMember = {
         user_id: currentId,
         professional: 'Profissional Teste',
-        status: 'approved',
+        status: mode === 'pending' ? 'pending' : 'approved',
         requested_at: '2026-11-19T17:00:00Z',
         requester_email: email
       };
@@ -194,15 +194,17 @@ try {
         reactions: [],
         writes: [],
         nextPostId: 2,
-        nextCommentId: 1
+        nextCommentId: 1,
+        signupCalls: 0,
+        refreshCalls: 0
       };
       const session = {
         access_token: 'mock-access-' + mode,
         refresh_token: 'mock-refresh-' + mode,
-        expires_at: 4102444800
+        expires_at: mode === 'member-expiring' ? Math.floor(Date.now() / 1000) + 20 : 4102444800
       };
       window.__mockState = state;
-      localStorage.setItem('bmw-x1-arena-auth', JSON.stringify(session));
+      if (mode !== 'signup') localStorage.setItem('bmw-x1-arena-auth', JSON.stringify(session));
       const json = (data, status = 200) => new Response(JSON.stringify(data), {
         status,
         headers: { 'Content-Type': 'application/json' }
@@ -220,7 +222,14 @@ try {
         state.writes.push({ method, path });
 
         if (path.endsWith('/auth/v1/user')) return json(user);
-        if (path.endsWith('/auth/v1/token')) return json({ ...session, user, expires_in: 3600 });
+        if (path.endsWith('/auth/v1/signup') && method === 'POST') {
+          state.signupCalls++;
+          return json({ user: { id: currentId, email } });
+        }
+        if (path.endsWith('/auth/v1/token')) {
+          state.refreshCalls++;
+          return json({ ...session, access_token: 'mock-refreshed-' + mode, expires_at: 4102444800, user, expires_in: 3600 });
+        }
         if (path.endsWith('/auth/v1/logout')) return empty();
         if (path.endsWith('/rest/v1/bmw_x1_admin_allowlist')) {
           return json(adminMode ? [{ email }] : []);
@@ -348,6 +357,53 @@ try {
     mockPage.on('dialog', dialog => dialog.accept());
     try {
       await mockPage.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+
+      if (mode === 'signup') {
+        await mockPage.locator('#bmwGateSignup').click();
+        await mockPage.waitForFunction(
+          () => getComputedStyle(document.getElementById('bmwGateConfirmWrap')).display !== 'none',
+          null,
+          { timeout: 5000 }
+        );
+        await mockPage.waitForFunction(
+          () => (document.querySelectorAll('#bmwSignupProfessional option').length || 0) > 1,
+          null,
+          { timeout: 15000 }
+        );
+        await mockPage.locator('#bmwSignupProfessional').selectOption({ index: 1 });
+        await mockPage.locator('#bmwGateEmail').fill('signup-audit@example.invalid');
+        await mockPage.locator('#bmwGatePassword').fill('Senha123!');
+        await mockPage.locator('#bmwGateConfirm').fill('Senha123!');
+        await mockPage.locator('#bmwGateEnter').click();
+        await mockPage.waitForFunction(
+          () => document.getElementById('bmwGateMessage')?.textContent.includes('Cadastro recebido, mas o Supabase não retornou uma sessão'),
+          null,
+          { timeout: 10000 }
+        );
+        const signupState = await mockPage.evaluate(() => window.__mockState);
+        assert.equal(signupState.signupCalls, 1, 'Signup flow should reach the mocked confirmation-required response');
+        assert.equal(signupState.writes.filter(x => x.path.endsWith('/bmw_x1_members') && x.method === 'POST').length, 0, 'No approval request is sent before email confirmation');
+        assert.deepEqual(mockErrors, [], 'Signup mock browser errors: ' + mockErrors.join('; '));
+        console.log('BMW X1 mocked Chromium flow PASS: signup confirmation-required state — no production API writes.');
+        return;
+      }
+
+      if (mode === 'pending') {
+        await mockPage.waitForFunction(
+          () => document.getElementById('bmwGatePending')?.style.display === 'block',
+          null,
+          { timeout: 15000 }
+        );
+        assert.match(await mockPage.locator('#bmwGatePendingText').innerText(), /Raphael ou Luis precisa aprovar/i);
+        await mockPage.evaluate(() => window.nav('arena'));
+        assert.equal(await mockPage.locator('#arena').evaluate(el => el.classList.contains('hidden')), true);
+        const pendingState = await mockPage.evaluate(() => window.__mockState);
+        assert.equal(pendingState.writes.filter(x => ['POST', 'PATCH', 'DELETE'].includes(x.method)).length, 0);
+        assert.deepEqual(mockErrors, [], 'Pending mock browser errors: ' + mockErrors.join('; '));
+        console.log('BMW X1 mocked Chromium flow PASS: pending professional remains blocked.');
+        return;
+      }
+
       await mockPage.waitForFunction(
         () => document.body.classList.contains('bmw-authorized'),
         null,
@@ -355,7 +411,7 @@ try {
       );
       assert.equal(await mockPage.locator('#bmwGate').isVisible(), false, mode + ': access gate should close after mocked authorization');
 
-      if (mode === 'member') {
+      if (mode === 'member' || mode === 'member-expiring') {
         await mockPage.locator('#arenaTab').click();
         await mockPage.waitForFunction(
           () => !document.getElementById('arenaFeedArea').classList.contains('hidden'),
