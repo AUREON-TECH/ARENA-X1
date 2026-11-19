@@ -64,7 +64,7 @@ try {
 
   const manifest = await page.locator('link[rel="manifest"]').getAttribute('href');
   assert.ok(manifest, 'PWA manifest link must exist');
-  const manifestResponse = await page.request.get(new URL(manifest, baseUrl).toString());
+  const manifestResponse = await context.request.get(new URL(manifest, baseUrl).toString());
   assert.equal(manifestResponse.status(), 200, 'PWA manifest must load');
   const manifestJson = await manifestResponse.json();
   assert.equal(manifestJson.start_url, '/ARENA-X1/');
@@ -75,7 +75,10 @@ try {
     return Boolean(registration?.active);
   }, null, { timeout: 45000 });
   const swUrl = await page.evaluate(async () => (await navigator.serviceWorker.getRegistration())?.active?.scriptURL || '');
-  assert.match(swUrl, /\/ARENA-X1\/sw\.js$/);
+  assert.match(swUrl, /\/ARENA-X1\/sw\.js(?:\?.*)?$/);
+  const swResponse = await context.request.get(new URL('sw.js?v=47', baseUrl).toString());
+  assert.equal(swResponse.status(), 200, 'Service Worker must load');
+  assert.match(await swResponse.text(), /arena-x1-stable-v47/);
 
   await page.locator('#arenaTab').click();
   await page.waitForFunction(
