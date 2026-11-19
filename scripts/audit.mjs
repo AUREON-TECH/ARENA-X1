@@ -6,6 +6,9 @@ const html=read('index.html'),sw=read('sw.js');
 const manifest=JSON.parse(read('manifest.webmanifest'));
 const scripts=['bonus-breakdown.js','arena.js','rules-cards.js','auth-gate.js','result-social.js','add-professional.js'];
 const inline=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+const cacheVersion=sw.match(/const CACHE='arena-x1-stable-v(\\d+)'/);
+const registrationVersion=html.match(/serviceWorker\\.register\\('\\.\\/sw\\.js\\?v=(\\d+)'/);
+assert.ok(cacheVersion&&registrationVersion&&cacheVersion[1]===registrationVersion[1],'Service Worker registration/cache versions must match');
 
 function idAttributes(source){
  return [...source.matchAll(/\s+id\s*=\s*\\?["']([^"'\\]+)\\?["']/g)].map(match=>match[1]);
