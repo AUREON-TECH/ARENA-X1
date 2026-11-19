@@ -80,7 +80,7 @@ try {
   assert.equal(swResponse.status(), 200, 'Service Worker must load');
   assert.match(await swResponse.text(), /arena-x1-stable-v47/);
 
-  await page.locator('#arenaTab').click();
+  await page.evaluate(() => window.nav('arena'));
   await page.waitForFunction(
     () => document.getElementById('bmwGateMessage')?.style.display === 'block',
     null,
