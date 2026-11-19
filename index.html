@@ -175,7 +175,7 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const norm=x=>String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
 function setStatus(id,txt,bad=false){const el=document.getElementById(id);el.textContent=txt;el.className='status'+(bad?' bad':'')}
 function nav(id){
- if(!accessGranted){const gate=document.getElementById('bmwGateMessage');if(gate)gate.textContent='Entre na sua conta e aguarde a aprovação para acessar a Arena.';return}
+ if(!accessGranted){const gate=document.getElementById('bmwGateMessage');if(gate){gate.textContent='Entre na sua conta para acessar o ranking, os resultados e a Arena. Profissionais precisam de aprovação de Raphael ou Luis.';gate.style.display='block'}return}
  if((id==='rules'||id==='management')&&!admin)return;
  const view=document.getElementById(id);
  if(!view){console.error('Tela não encontrada:',id);return}
