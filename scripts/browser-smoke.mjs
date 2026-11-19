@@ -367,8 +367,11 @@ try {
           null,
           { timeout: 15000 }
         );
+        await mockPage.locator('[data-arena-view="posts"]').click();
         await mockPage.locator('#arenaPostCategory').selectOption('desafio');
-        await mockPage.locator('#arenaPostText').fill('Meta batida! 🔥');
+        await mockPage.locator('#arenaPostText').fill('Meta batida!');
+        await mockPage.locator('.arena-emoji-insert').first().click();
+        assert.match(await mockPage.locator('#arenaPostText').inputValue(), /🔥/);
         await mockPage.locator('#arenaPostForm button[type="submit"]').click();
         await mockPage.waitForFunction(
           () => document.getElementById('arenaFeed')?.innerText.includes('Meta batida! 🔥'),
@@ -376,6 +379,7 @@ try {
           { timeout: 10000 }
         );
         await mockPage.locator('[data-like="1"]').click();
+        await mockPage.locator('[data-react="1"][data-emoji="🔥"]').scrollIntoViewIfNeeded();
         await mockPage.locator('[data-react="1"][data-emoji="🔥"]').click();
         await mockPage.locator('[data-commenttoggle="1"]').click();
         await mockPage.locator('form[data-post="1"] input').fill('Comentário simulado');
@@ -420,7 +424,8 @@ try {
       }
 
       const mockState = await mockPage.evaluate(() => window.__mockState);
-      assert.ok(mockState.writes.length > 0, mode + ': mocked UI actions should be recorded');
+      const dml = mockState.writes.filter(item => ['POST', 'PATCH', 'DELETE'].includes(item.method));
+      assert.ok(dml.length > 0, mode + ': mocked UI writes should be recorded in memory only');
       assert.deepEqual(mockErrors, [], mode + ': unexpected browser errors: ' + mockErrors.join('; '));
       console.log('BMW X1 mocked Chromium flow PASS: ' + mode + ' — no production API writes.');
     } finally {
