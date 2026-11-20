@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 
 const baseUrl = process.env.ARENA_URL || 'https://aureon-tech.github.io/ARENA-X1/';
-const expectedBuild = 'arena-x1-v47';
+const expectedBuild = 'arena-x1-v48';
 const browser = await chromium.launch({ headless: true, channel: 'chrome' });
 const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
 const page = await context.newPage();
@@ -108,13 +108,13 @@ try {
   assert.match(swInfo.activeScript, /sw\.js\?v=47$/);
   console.log('Service Worker active: ' + swInfo.activeScript);
   const socialPrecache = await page.waitForFunction(async () => {
-    const cache = await caches.open('arena-x1-stable-v47');
+    const cache = await caches.open('arena-x1-stable-v48');
     return Boolean(await cache.match(new URL('result-social.js', location.href).toString()));
   }, null, { timeout: 20000 }).then(() => true).catch(() => false);
-  assert.ok(socialPrecache, 'Results social script must be included in the active v47 PWA precache');
+  assert.ok(socialPrecache, 'Results social script must be included in the active v48 PWA precache');
   const swResponse = await context.request.get(new URL('sw.js?v=47', baseUrl).toString());
   assert.equal(swResponse.status(), 200, 'Service Worker must load');
-  assert.match(await swResponse.text(), /arena-x1-stable-v47/);
+  assert.match(await swResponse.text(), /arena-x1-stable-v48/);
 
   await page.evaluate(() => window.nav('arena'));
   await page.waitForFunction(
@@ -248,7 +248,8 @@ try {
         nextPostId: 2,
         nextCommentId: 2,
         signupCalls: 0,
-        refreshCalls: 0
+        refreshCalls: 0,
+        failNextRefresh: false
       };
       const session = {
         access_token: 'mock-access-' + mode,
@@ -280,7 +281,11 @@ try {
         }
         if (path.endsWith('/auth/v1/token')) {
           state.refreshCalls++;
-          return json({ ...session, access_token: 'mock-refreshed-' + mode, expires_at: 4102444800, user, expires_in: 3600 });
+          if (state.failNextRefresh) {
+            state.failNextRefresh = false;
+            return json({ message: 'Temporary refresh failure' }, 503);
+          }
+          return json({ ...session, access_token: 'mock-refreshed-' + mode, refresh_token: 'mock-refresh-rotated-' + mode, expires_at: 4102444800, user, expires_in: 3600 });
         }
         if (path.endsWith('/auth/v1/logout')) return empty();
         if (path.endsWith('/rest/v1/bmw_x1_admin_allowlist')) {
@@ -695,6 +700,36 @@ try {
           mode,
           { timeout: 10000 }
         );
+        if (mode === 'admin-luis') {
+          await mockPage.evaluate(() => {
+            window.eval('admin = false');
+            document.dispatchEvent(new Event('visibilitychange'));
+          });
+          await mockPage.waitForFunction(
+            () => window.eval('admin') === true && !document.querySelector('[data-tab="management"]').classList.contains('hidden'),
+            null,
+            { timeout: 10000 }
+          );
+          const stability = await mockPage.evaluate(async () => {
+            window.__mockState.failNextRefresh = true;
+            window.eval('session.expires_at = 0');
+            const original = window.bmwAppToken;
+            window.bmwAppToken = async () => { throw new Error('Temporary refresh failure'); };
+            try { await window.token(); } catch {}
+            window.bmwAppToken = original;
+            return {
+              managerVisible: !document.querySelector('[data-tab="management"]').classList.contains('hidden'),
+              sessionStored: Boolean(sessionStorage.getItem('bmwx1-auth')),
+              admin: window.eval('admin'),
+              refreshCalls: window.__mockState.refreshCalls
+            };
+          });
+          assert.equal(stability.managerVisible, true, 'Transient token failure must not hide manager access');
+          assert.equal(stability.sessionStored, true, 'Transient token failure must preserve the manager session');
+          assert.equal(stability.admin, true, 'Allowlisted manager role must survive revalidation');
+          assert.equal(stability.refreshCalls, 0, 'Legacy token helper must delegate to the shared session controller');
+          console.log('BMW X1 manager session resilience PASS: role restoration and transient refresh preservation.');
+        }
       }
 
       const dynamicDuplicateIds = await mockPage.locator('[id]').evaluateAll(nodes => {
@@ -707,6 +742,8 @@ try {
       assert.ok(dml.length > 0, mode + ': mocked UI writes should be recorded in memory only');
       if (mode === 'member-expiring') {
         assert.equal(mockState.refreshCalls, 1, 'Near-expiry session should refresh its token once');
+        const refreshedToken = await mockPage.evaluate(() => JSON.parse(localStorage.getItem('bmw-x1-arena-auth') || 'null')?.refresh_token);
+        assert.equal(refreshedToken, 'mock-refresh-rotated-member-expiring', 'Rotated refresh token must be persisted after refresh');
       }
       assert.deepEqual(mockErrors, [], mode + ': unexpected browser errors: ' + mockErrors.join('; '));
       await mockPage.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
