@@ -55,6 +55,7 @@ const arena=read('arena.js');
 assert.match(arena,/data-max-codepoints="50"/);
 assert.match(arena,/chars\.slice\(0,50\)\.join\(''\)/);
 assert.match(arena,/await window\.bmwAppToken/);
+assert.doesNotMatch(arena,/auth\/v1\/signup|arenaSignup|arenaAuthForm|arenaRecover|auth\/v1\/token\?grant_type=password/,'A Arena não pode manter um segundo fluxo de autenticação/cadastro.');
 assert.match(arena,/!accessGranted/);
 assert.match(arena,/arenaModPosts/);
 assert.match(arena,/data-like/);
