@@ -50,6 +50,24 @@ try {
   }
   assert.ok(deployed, 'GitHub Pages did not serve ' + expectedBuild + ' at ' + baseUrl);
 
+  const legacyContext = await browser.newContext();
+  try {
+    const legacyPage = await legacyContext.newPage();
+    const legacyResponse = await legacyPage.goto(
+      'https://raphaelbuenocaptacao-creator.github.io/BMW-X1/',
+      { waitUntil: 'domcontentloaded', timeout: 20000 }
+    );
+    console.log('Legacy BMW-X1 URL probe: ' + JSON.stringify({
+      status: legacyResponse?.status() ?? null,
+      finalUrl: legacyPage.url(),
+      reachedCanonical: legacyPage.url().startsWith(baseUrl)
+    }));
+  } catch (error) {
+    console.log('Legacy BMW-X1 URL probe unavailable: ' + error.message);
+  } finally {
+    await legacyContext.close();
+  }
+
   await page.waitForFunction(
     () => typeof window.bmwArenaOpen === 'function' && typeof window.bmwAppToken === 'function',
     null,
@@ -492,6 +510,7 @@ try {
             'Mural content overflow at ' + viewport.width + 'px: ' + JSON.stringify(dimensions)
           );
         }
+        console.log('Authenticated Mural responsive: PASS at 390px and 768px.');
         await mockPage.locator('[data-arena-view="posts"]').click();
         await mockPage.locator('#arenaPostCategory').selectOption('desafio');
         await mockPage.locator('#arenaPostText').fill('Meta batida!');
