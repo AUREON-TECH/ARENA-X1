@@ -201,7 +201,7 @@
       await checkSession();
      }
     }else{
-     message('Cadastro recebido, mas o Supabase não retornou uma sessão. Isso também acontece quando o e-mail já está cadastrado. Volte ao login e tente entrar com sua senha. Se aparecer “Email not confirmed”, confira a configuração Confirm email do projeto correto.');
+     message('Cadastro recebido. Caso o Supabase exija confirmação, confira sua caixa de entrada e o spam, abra o link de confirmação e depois volte ao app para entrar e solicitar aprovação. Se este e-mail já estiver cadastrado, volte ao login e entre com sua senha.');
     }
    }catch(error){rateLimit(error)}
    finally{setBusy(false);if(signupMode&&Date.now()<signupBlockUntil)el('bmwGateEnter').disabled=true}

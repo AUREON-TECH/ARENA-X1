@@ -431,7 +431,7 @@ try {
         await mockPage.locator('#bmwGateConfirm').fill('Senha123!');
         await mockPage.locator('#bmwGateEnter').click();
         await mockPage.waitForFunction(
-          () => document.getElementById('bmwGateMessage')?.textContent.includes('Cadastro recebido, mas o Supabase não retornou uma sessão'),
+          () => document.getElementById('bmwGateMessage')?.textContent.includes('confira sua caixa de entrada'),
           null,
           { timeout: 10000 }
         );
