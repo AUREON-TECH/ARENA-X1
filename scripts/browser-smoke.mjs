@@ -627,7 +627,7 @@ try {
           null,
           { timeout: 15000 }
         );
-        await mockPage.locator('#arenaReviewList [data-approve]').click();
+        await mockPage.locator('#arenaReviewList [data-approve="22222222-2222-4222-8222-222222222222"]').click();
         await mockPage.waitForFunction(
           () => window.__mockState.members.find(row => row.professional === 'Profissional Pendente')?.status === 'approved',
           null,
@@ -638,7 +638,7 @@ try {
           null,
           { timeout: 10000 }
         );
-        await mockPage.locator('#arenaReviewList [data-reject]').click();
+        await mockPage.locator('#arenaReviewList [data-reject="44444444-4444-4444-8444-444444444444"]').click();
         await mockPage.waitForFunction(
           () => window.__mockState.members.find(row => row.professional === 'Profissional Recusado')?.status === 'rejected',
           null,
