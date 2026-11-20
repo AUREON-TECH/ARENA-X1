@@ -94,23 +94,25 @@ try {
   assert.equal(manifestJson.start_url, '/ARENA-X1/');
   assert.equal(manifestJson.scope, '/ARENA-X1/');
 
-  await page.waitForFunction(async () => {
+  const swInfoHandle = await page.waitForFunction(async () => {
     const registration = await navigator.serviceWorker.getRegistration();
     const scriptUrl = registration?.active?.scriptURL || '';
     const version = scriptUrl ? new URL(scriptUrl).searchParams.get('v') : null;
-    return registration?.active?.state === 'activated' &&
+    if (
+      registration?.active?.state === 'activated' &&
       version === '47' &&
       !registration.installing &&
-      !registration.waiting;
+      !registration.waiting
+    ) {
+      return {
+        scope: registration.scope || '',
+        state: registration.active.state || '',
+        activeScript: scriptUrl
+      };
+    }
+    return false;
   }, null, { timeout: 45000 });
-  const swInfo = await page.evaluate(async () => {
-    const registration = await navigator.serviceWorker.getRegistration();
-    return {
-      scope: registration?.scope || '',
-      state: registration?.active?.state || '',
-      activeScript: registration?.active?.scriptURL || ''
-    };
-  });
+  const swInfo = await swInfoHandle.jsonValue();
   assert.match(swInfo.scope, /\/ARENA-X1\/$/);
   assert.match(swInfo.activeScript, /sw\.js\?v=47$/);
   console.log('Service Worker active: ' + swInfo.activeScript);
