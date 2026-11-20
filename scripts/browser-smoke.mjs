@@ -99,6 +99,11 @@ try {
   });
   assert.match(swInfo.scope, /\/ARENA-X1\/$/);
   console.log('Service Worker scope: ' + swInfo.scope);
+  const socialPrecache = await page.evaluate(async () => {
+    const cache = await caches.open('arena-x1-stable-v47');
+    return Boolean(await cache.match(new URL('result-social.js', location.href).toString()));
+  });
+  assert.ok(socialPrecache, 'Results social script must be included in the PWA precache');
   const swResponse = await context.request.get(new URL('sw.js?v=47', baseUrl).toString());
   assert.equal(swResponse.status(), 200, 'Service Worker must load');
   assert.match(await swResponse.text(), /arena-x1-stable-v47/);
@@ -160,6 +165,11 @@ try {
   await context.setOffline(true);
   await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
   assert.match(await page.title(), /ARENA X1/i, 'Cached app shell must load offline');
+  await page.waitForFunction(
+    () => typeof window.bmwResultSocialRefresh === 'function',
+    null,
+    { timeout: 10000 }
+  );
   await context.setOffline(false);
 
   const runMockFlow = async mode => {
@@ -603,6 +613,11 @@ try {
         );
       }
 
+      const dynamicDuplicateIds = await mockPage.locator('[id]').evaluateAll(nodes => {
+        const ids = nodes.map(node => node.id).filter(Boolean);
+        return [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
+      });
+      assert.deepEqual(dynamicDuplicateIds, [], mode + ': dynamic DOM IDs must remain unique');
       const mockState = await mockPage.evaluate(() => window.__mockState);
       const dml = mockState.writes.filter(item => ['POST', 'PATCH', 'DELETE'].includes(item.method));
       assert.ok(dml.length > 0, mode + ': mocked UI writes should be recorded in memory only');
