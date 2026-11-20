@@ -91,19 +91,29 @@ try {
 
   await page.waitForFunction(async () => {
     const registration = await navigator.serviceWorker.getRegistration();
-    return registration?.active?.state === 'activated';
+    const scriptUrl = registration?.active?.scriptURL || '';
+    const version = scriptUrl ? new URL(scriptUrl).searchParams.get('v') : null;
+    return registration?.active?.state === 'activated' &&
+      version === '47' &&
+      !registration.installing &&
+      !registration.waiting;
   }, null, { timeout: 45000 });
   const swInfo = await page.evaluate(async () => {
     const registration = await navigator.serviceWorker.getRegistration();
-    return { scope: registration?.scope || '', state: registration?.active?.state || '' };
+    return {
+      scope: registration?.scope || '',
+      state: registration?.active?.state || '',
+      activeScript: registration?.active?.scriptURL || ''
+    };
   });
   assert.match(swInfo.scope, /\/ARENA-X1\/$/);
-  console.log('Service Worker scope: ' + swInfo.scope);
-  const socialPrecache = await page.evaluate(async () => {
+  assert.match(swInfo.activeScript, /sw\.js\?v=47$/);
+  console.log('Service Worker active: ' + swInfo.activeScript);
+  const socialPrecache = await page.waitForFunction(async () => {
     const cache = await caches.open('arena-x1-stable-v47');
     return Boolean(await cache.match(new URL('result-social.js', location.href).toString()));
-  });
-  assert.ok(socialPrecache, 'Results social script must be included in the PWA precache');
+  }, null, { timeout: 20000 }).then(() => true).catch(() => false);
+  assert.ok(socialPrecache, 'Results social script must be included in the active v47 PWA precache');
   const swResponse = await context.request.get(new URL('sw.js?v=47', baseUrl).toString());
   assert.equal(swResponse.status(), 200, 'Service Worker must load');
   assert.match(await swResponse.text(), /arena-x1-stable-v47/);
