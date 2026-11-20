@@ -79,7 +79,6 @@ try {
     { timeout: 30000 }
   );
   assert.match(await page.title(), /ARENA X1/i);
-  assert.equal(await page.locator('#arenaAuthForm, #arenaSignup, #arenaRecover').count(), 0, 'Arena must not expose a second login/signup path');
 
   const duplicateIds = await page.locator('[id]').evaluateAll(nodes => {
     const ids = nodes.map(node => node.id).filter(Boolean);
@@ -109,13 +108,13 @@ try {
   assert.match(swInfo.activeScript, /sw\.js\?v=48$/);
   console.log('Service Worker active: ' + swInfo.activeScript);
   const socialPrecache = await page.waitForFunction(async () => {
-    const cache = await caches.open('arena-x1-stable-v48');
+    const cache = await caches.open('arena-x1-stable-v49');
     return Boolean(await cache.match(new URL('result-social.js', location.href).toString()));
   }, null, { timeout: 20000 }).then(() => true).catch(() => false);
-  assert.ok(socialPrecache, 'Results social script must be included in the active v48 PWA precache');
+  assert.ok(socialPrecache, 'Results social script must be included in the active v49 PWA precache');
   const swResponse = await context.request.get(new URL('sw.js?v=49', baseUrl).toString());
   assert.equal(swResponse.status(), 200, 'Service Worker must load');
-  assert.match(await swResponse.text(), /arena-x1-stable-v48/);
+  assert.match(await swResponse.text(), /arena-x1-stable-v49/);
 
   await page.evaluate(() => window.nav('arena'));
   await page.waitForFunction(
@@ -171,6 +170,26 @@ try {
 
   await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller), null, { timeout: 20000 });
+  let arenaAssetUpdated = false;
+  for (let attempt = 0; attempt < 30; attempt++) {
+    const arenaResponse = await context.request.get(new URL('arena.js', baseUrl).toString(), {
+      headers: { 'Cache-Control': 'no-cache' }
+    });
+    if (arenaResponse.status() === 200) {
+      const arenaSource = await arenaResponse.text();
+      if (!['arenaAuthForm', 'arenaSignup', 'arenaRecover', 'auth/v1/signup'].some(token => arenaSource.includes(token))) {
+        arenaAssetUpdated = true;
+        break;
+      }
+    }
+    await page.waitForTimeout(5000);
+  }
+  assert.ok(arenaAssetUpdated, 'Published arena.js must be the v49 single-auth version');
+  assert.equal(
+    await page.locator('#arenaAuthForm, #arenaSignup, #arenaRecover').count(),
+    0,
+    'Arena must not expose a second login/signup path after the v49 Service Worker takes control'
+  );
   await context.setOffline(true);
   await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
   assert.match(await page.title(), /ARENA X1/i, 'Cached app shell must load offline');
