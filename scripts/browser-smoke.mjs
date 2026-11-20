@@ -57,13 +57,18 @@ try {
       'https://raphaelbuenocaptacao-creator.github.io/BMW-X1/',
       { waitUntil: 'domcontentloaded', timeout: 20000 }
     );
+    const legacyStatus = legacyResponse?.status() ?? null;
+    const reachedCanonical = legacyPage.url().startsWith(baseUrl);
     console.log('Legacy BMW-X1 URL probe: ' + JSON.stringify({
-      status: legacyResponse?.status() ?? null,
+      status: legacyStatus,
       finalUrl: legacyPage.url(),
-      reachedCanonical: legacyPage.url().startsWith(baseUrl)
+      reachedCanonical
     }));
+    if (legacyStatus !== 200 || !reachedCanonical) {
+      console.warn('::warning::Legacy BMW-X1 URL is unavailable or did not redirect to the canonical ARENA-X1 address. Restore a Pages redirect on the personal domain.');
+    }
   } catch (error) {
-    console.log('Legacy BMW-X1 URL probe unavailable: ' + error.message);
+    console.warn('::warning::Legacy BMW-X1 URL probe unavailable: ' + error.message);
   } finally {
     await legacyContext.close();
   }
