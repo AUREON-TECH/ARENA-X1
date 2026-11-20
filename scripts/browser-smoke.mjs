@@ -105,7 +105,7 @@ try {
   });
   assert.ok(swInfo && typeof swInfo.scope === 'string', 'Service Worker registration details must be captured');
   assert.match(swInfo.scope, /\/ARENA-X1\/$/);
-  assert.match(swInfo.activeScript, /sw\.js\?v=48$/);
+  assert.match(swInfo.activeScript, /sw\.js\?v=49$/);
   console.log('Service Worker active: ' + swInfo.activeScript);
   const socialPrecache = await page.waitForFunction(async () => {
     const cache = await caches.open('arena-x1-stable-v49');
