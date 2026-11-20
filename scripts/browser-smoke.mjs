@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 
 const baseUrl = process.env.ARENA_URL || 'https://aureon-tech.github.io/ARENA-X1/';
-const expectedBuild = 'arena-x1-v48';
+const expectedBuild = 'arena-x1-v49';
 const browser = await chromium.launch({ headless: true, channel: 'chrome' });
 const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
 const page = await context.newPage();
@@ -79,6 +79,7 @@ try {
     { timeout: 30000 }
   );
   assert.match(await page.title(), /ARENA X1/i);
+  assert.equal(await page.locator('#arenaAuthForm, #arenaSignup, #arenaRecover').count(), 0, 'Arena must not expose a second login/signup path');
 
   const duplicateIds = await page.locator('[id]').evaluateAll(nodes => {
     const ids = nodes.map(node => node.id).filter(Boolean);
@@ -112,7 +113,7 @@ try {
     return Boolean(await cache.match(new URL('result-social.js', location.href).toString()));
   }, null, { timeout: 20000 }).then(() => true).catch(() => false);
   assert.ok(socialPrecache, 'Results social script must be included in the active v48 PWA precache');
-  const swResponse = await context.request.get(new URL('sw.js?v=48', baseUrl).toString());
+  const swResponse = await context.request.get(new URL('sw.js?v=49', baseUrl).toString());
   assert.equal(swResponse.status(), 200, 'Service Worker must load');
   assert.match(await swResponse.text(), /arena-x1-stable-v48/);
 
