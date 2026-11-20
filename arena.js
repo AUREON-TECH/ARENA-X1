@@ -11,10 +11,6 @@
  const section=document.getElementById('arena')||document.createElement('section');section.className='panel view hidden';section.id='arena';
  section.innerHTML='<div class="arena-head"><div><h2>🏟️ ARENA X1</h2><p>Desafios, provocações saudáveis e torcida pela BMW. Publicações de até <strong>50 caracteres</strong>.</p></div><div class="arena-subtitle">Competidores aprovados · ARENA X1</div></div>'+
  '<div id="arenaStatus" class="arena-status" role="status"></div>'+
- '<div id="arenaAccess"><div class="arena-card"><h3>Entre na disputa</h3><p>Crie uma conta na tela inicial e solicite aprovação. Não é necessário outro login para participar.</p>'+
- '<form id="arenaAuthForm"><label>E-mail<input id="arenaEmail" type="email" autocomplete="email" required placeholder="voce@exemplo.com"></label><label>Senha<input id="arenaPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="Sua senha"></label>'+
- '<div class="arena-buttons"><button class="btn primary" type="submit">Entrar</button><button class="btn" id="arenaSignup" type="button">Criar conta</button><button class="btn small" id="arenaRecover" type="button">Esqueci a senha</button></div></form><p class="arena-hint">A conta não libera o mural automaticamente. Raphael ou Luis precisa aprovar seu perfil. Nunca compartilhe sua senha.</p></div></div>'+
- '<div id="arenaWaiting" class="arena-card hidden"><h3>Solicitação de acesso</h3><p id="arenaMemberInfo"></p><div id="arenaRequestArea"><label>Selecione seu nome na competição<select id="arenaProfessional"></select></label><button class="btn primary" id="arenaRequest" type="button">Solicitar aprovação</button></div><button class="btn small" id="arenaLeave" type="button">Sair desta conta</button></div>'+
  '<div id="arenaFeedArea" class="hidden"><div class="arena-spotlight" id="arenaSpotlight"></div><div class="arena-compose"><div class="arena-authrow"><span id="arenaIdentity"></span><button class="btn small" id="arenaReload" type="button">↻ Atualizar</button></div><h3 class="arena-compose-title">💬 Qual é o grito da Arena hoje?</h3><form id="arenaPostForm"><div class="arena-input-wrap"><textarea id="arenaPostText" rows="2" data-max-codepoints="50" placeholder="Mande sua torcida, desafio ou parabéns... 🔥" required></textarea><div class="arena-emoji-bar" id="arenaEmojiBar"></div></div><div class="arena-compose-bottom"><select id="arenaPostCategory" aria-label="Tipo da publicação"><option value="torcida">❤️ Torcida</option><option value="desafio">🔥 Desafio</option><option value="parabens">👏 Parabéns</option><option value="meta">🏆 Meta batida</option><option value="gestao">🛡️ Recado da gestão</option></select><span id="arenaPostCount">0 / 50</span><button class="btn primary" type="submit">🚀 Publicar</button></div></form></div><div class="arena-feed-toolbar"><strong>💬 Conversas da Arena</strong><div class="arena-feed-filters"><select id="arenaFeedFilter" aria-label="Filtrar mensagens"><option value="all">Todas as mensagens</option><option value="desafio">🔥 Desafios</option><option value="parabens">👏 Parabéns</option><option value="meta">🏆 Metas batidas</option><option value="gestao">🛡️ Gestão</option></select><select id="arenaFeedSort" aria-label="Ordenação"><option value="recent">Mais recentes</option><option value="popular">Mais curtidas</option></select></div></div><div id="arenaFeed"></div></div>'+
  '';
  if(!section.parentElement)document.querySelector('.nav').insertAdjacentElement('afterend',section);
@@ -81,26 +77,13 @@
  css.textContent+="\n#arena{max-width:1100px;margin-inline:auto}\n.arena-head h2{font-size:24px}\n.arena-spotlight-card{background:linear-gradient(112deg,#2e3d62,#1d314b 65%,#17374d);border:1px solid #806b58;border-radius:17px;padding:17px 22px;display:flex;justify-content:space-between;gap:15px;align-items:center;margin-bottom:14px}\n.arena-spotlight-card small{display:block;color:#f4c677;font-size:10px;letter-spacing:1.6px;font-weight:800;margin-bottom:6px}\n.arena-spotlight-card strong{display:block;font-size:18px;color:#fff;overflow-wrap:anywhere}\n.arena-spotlight-card span{display:block;font-size:11px;color:#c5d7e8;margin-top:6px}\n.arena-spotlight-icon{font-size:38px}\n.arena-compose{padding:18px;background:#1a2d45;border-radius:16px}\n.arena-compose-title{font-size:16px;margin:16px 0 9px;color:#f0f4ff}\n.arena-input-wrap{border:1px solid #496480;border-radius:13px;overflow:hidden;background:#0c1b2e}\n.arena-input-wrap textarea{border:0!important;border-radius:0!important;background:transparent!important;resize:vertical;font-size:14px;min-height:76px}\n.arena-emoji-bar{display:flex;gap:5px;padding:6px 8px;border-top:1px solid #28425b;flex-wrap:wrap}\n.arena-emoji-insert{border:0;background:transparent;cursor:pointer;padding:5px 7px;border-radius:8px;font-size:17px}\n.arena-emoji-insert:hover{background:#294562}\n.arena-compose-bottom{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}\n.arena-compose-bottom select,.arena-feed-filters select{background:#10233a;border:1px solid #466383;border-radius:9px;color:#f2f5fc;padding:9px;font-size:12px}\n#arenaPostCount{margin-left:auto;color:#bbcadc;font-size:12px}\n.arena-feed-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:18px 0 10px}\n.arena-feed-toolbar strong{font-size:17px}\n.arena-feed-filters{display:flex;gap:8px;flex-wrap:wrap}\n.arena-chat-message{background:#172b45;border:1px solid #365371;border-radius:17px;margin:10px 0;padding:17px;box-shadow:0 4px 16px #07111e2b}\n.arena-chat-pinned{border-color:#c59b58;box-shadow:0 0 0 1px #c59b5822}\n.arena-chat-header{display:flex;align-items:center;gap:10px}\n.arena-avatar,.arena-mini-avatar{width:39px;height:39px;border-radius:13px;background:linear-gradient(140deg,#9a7848,#4a698e);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:850;flex:none}\n.arena-chat-author{flex:1;min-width:0}\n.arena-chat-author strong{display:block;color:#f4e0af;font-size:13px;overflow-wrap:anywhere}\n.arena-chat-author span{display:block;color:#a9c0d9;font-size:11px;margin-top:3px}\n.arena-chat-header time{font-size:11px;color:#b9cbdf;align-self:start}\n.arena-chat-bubble{margin:14px 0 10px 49px;padding:13px 16px;border-radius:4px 15px 15px 15px;background:#203b59;border:1px solid #375878;font-size:17px;font-weight:600;line-height:1.5;overflow-wrap:anywhere}\n.arena-reaction-row{display:flex;gap:6px;flex-wrap:wrap;margin-left:49px}\n.arena-react{border:1px solid #425b73;background:#1b3048;border-radius:999px;padding:6px 11px;color:#fff;font-size:14px;cursor:pointer}\n.arena-react.active{border-color:#e3bc70;background:#58492f}\n.arena-chat-actions{display:flex;gap:15px;align-items:center;flex-wrap:wrap;margin-top:13px;padding:11px 0 0;border-top:1px solid #304c68}\n.arena-action,.arena-mini-delete{background:none;border:0;color:#c9daf0;cursor:pointer;font-size:12px;font-weight:700;padding:5px}\n.arena-action:hover{color:#f3c979}\n.arena-delete{margin-left:auto;color:#efb1b1}\n.arena-chat-comments{border-top:1px solid #2b4662;padding-top:11px;margin-top:10px}\n.arena-mini-message{display:flex;gap:8px;align-items:flex-start;margin:9px 0}\n.arena-mini-avatar{width:28px;height:28px;border-radius:10px;font-size:9px}\n.arena-mini-bubble{background:#0d2035;border:1px solid #2e4860;border-radius:4px 12px 12px;padding:8px 12px;min-width:0;flex:1}\n.arena-mini-bubble strong{font-size:11px;color:#f2d28c}.arena-mini-bubble p{font-size:13px;margin:4px 0;color:#fff;overflow-wrap:anywhere}.arena-mini-bubble small{font-size:10px;color:#9eb8d4}\n.arena-comment-form{display:flex;gap:8px;margin-top:10px}\n.arena-empty{text-align:center;padding:26px;background:#172b43;border-radius:14px;color:#f3cf86}.arena-empty span{font-size:12px;color:#aebfd5}\n.arena-manager{margin-top:19px!important}.arena-manager>summary{font-weight:800;cursor:pointer;color:#f2d39a;font-size:14px}\n@media(max-width:650px){.arena-chat-message,.arena-compose{padding:12px}.arena-chat-bubble,.arena-reaction-row{margin-left:0}.arena-feed-toolbar{align-items:flex-start;flex-direction:column}.arena-feed-filters select{max-width:165px}.arena-chat-bubble{font-size:15px}.arena-chat-header time{font-size:10px}.arena-compose-bottom select{flex:1}}\n";
  document.head.appendChild(css);
 
- let local=null,user=null,member=null,viewer=false,postCache=[],comments=[],likes=[],reactions=[],poll=null,postLastAt=0,posting=false;const visibleComments=new Set();const emojiSet=['🔥','👏','💪','😂','👀','🏆'];const categoryLabels={torcida:'❤️ Torcida',desafio:'🔥 Desafio',parabens:'👏 Parabéns',meta:'🏆 Meta batida',gestao:'🛡️ Gestão'};
+ let user=null,member=null,viewer=false,postCache=[],comments=[],likes=[],reactions=[],poll=null,postLastAt=0,posting=false;const visibleComments=new Set();const emojiSet=['🔥','👏','💪','😂','👀','🏆'];const categoryLabels={torcida:'❤️ Torcida',desafio:'🔥 Desafio',parabens:'👏 Parabéns',meta:'🏆 Meta batida',gestao:'🛡️ Gestão'};
  const managerName=()=>admin?(String(user?.email||session?.user?.email||'').toLowerCase()==='luisaneto@gmail.com'?'LUIS • GESTÃO':'RAPHAEL • GESTÃO'):null;
  const authorName=()=>admin?managerName():member?.professional;
  const canInteract=()=>accessGranted&&(admin||member?.status==='approved');
- try{local=JSON.parse(localStorage.getItem('bmw-x1-arena-auth')||'null')}catch{}
  const el=id=>document.getElementById(id);
- el('arenaAccess').classList.add('hidden');el('arenaWaiting').classList.add('hidden');
  const safe=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
  const setmsg=msg=>{el('arenaStatus').textContent=msg||''};
- function authToken(){return local?.access_token||''}
- async function arenaToken(){
-  if(window.bmwAppToken)return await window.bmwAppToken();
-  if(!local)return null;
-  if(Date.now()<Number(local.expires_at||0)*1000-45000)return local.access_token;
-  try{
-   const r=await rest('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:local.refresh_token})});
-   local={...r,expires_at:Math.floor(Date.now()/1000)+r.expires_in};
-   localStorage.setItem('bmw-x1-arena-auth',JSON.stringify(local));user=r.user||user;return local.access_token;
-  }catch{local=null;user=null;member=null;localStorage.removeItem('bmw-x1-arena-auth');return null}
- }
  async function api(path,opts={},manager=false){
   const t=await window.bmwAppToken?.();
   if(!accessGranted||!t)throw Error('Acesso não liberado. Entre pela tela inicial.');
@@ -110,27 +93,15 @@
   const allowed=member?.status==='approved'||admin;
   const arenaTab=el('arenaTab');
   if(arenaTab)arenaTab.classList.toggle('hidden',accessGranted&&!admin&&viewer);
-  el('arenaAccess').classList.add('hidden');
-  el('arenaWaiting').classList.add('hidden');
   el('arenaFeedArea').classList.toggle('hidden',!accessGranted||!allowed);
   const prof=member?.professional;
-  el('arenaMemberInfo').textContent=member?(member.status==='pending'?'Aguardando aprovação de Raphael ou Luis para '+prof+'.':member.status==='rejected'?'Solicitação não aprovada para '+prof+'. Fale com a gestão.':'Seu perfil: '+prof):'Sua conta foi autenticada. Escolha seu nome e solicite aprovação.';
-  el('arenaRequestArea').classList.toggle('hidden',!!member);
   if(allowed)el('arenaIdentity').textContent=admin?'🛡️ '+managerName()+' · Publique, curta e comente':'✅ '+prof+' · Participante aprovado';
   el('arenaPostForm').classList.toggle('hidden',!canInteract());
   el('arenaPostCategory').querySelector('option[value="gestao"]').disabled=!admin;
   if(!admin&&el('arenaPostCategory').value==='gestao')el('arenaPostCategory').value='torcida';
-  // O login é único; não existe botão de logout separado na Arena.
   el('arenaManage').classList.toggle('hidden',!admin);
  }
- function roster(){
-  const select=el('arenaProfessional');
-  const current=select.value;
-  select.innerHTML=people.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(p=>'<option value="'+safe(p.name)+'">'+safe(p.name)+' · '+safe(p.role)+'</option>').join('');
-  if(people.some(x=>x.name===current))select.value=current;
- }
  async function connect(){
-  roster();
   const t=await window.bmwAppToken?.();
   if(!accessGranted||!t){user=null;member=null;renderAccess();return}
   try{
@@ -149,67 +120,6 @@
    if(member?.status==='approved'||admin){await loadFeed();setmsg('✅ Mural carregado. Publique, curta e comente!')}
   }catch(e){setmsg('Acesso: '+e.message);renderAccess()}
  }
- el('arenaAuthForm').onsubmit=async event=>{
-  event.preventDefault();
-  const email=el('arenaEmail').value.trim().toLowerCase(),password=el('arenaPassword').value;
-  setmsg('Conferindo sua conta...');
-  try{
-   const result=await rest('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});
-   local={...result,expires_at:Math.floor(Date.now()/1000)+result.expires_in};
-   localStorage.setItem('bmw-x1-arena-auth',JSON.stringify(local));user=result.user;el('arenaPassword').value='';
-   await connect();setmsg('Conta conectada. '+(member?.status==='approved'?'Bem-vindo à Arena!':'Solicite ou acompanhe sua aprovação.'));
-  }catch(e){setmsg('Não foi possível entrar: '+e.message)}
- };
- let signupCooldownUntil=0,signupTimer=null;
- function refreshSignupCooldown(){
-  const remaining=Math.max(0,Math.ceil((signupCooldownUntil-Date.now())/1000)),btn=el('arenaSignup');
-  btn.disabled=remaining>0;
-  btn.textContent=remaining>0?'Aguarde '+remaining+'s':'Criar conta';
-  if(!remaining&&signupTimer){clearInterval(signupTimer);signupTimer=null}
- }
- function handleSignupError(err){
-  const message=String(err?.message||err||'');
-  const seconds=message.match(/(?:after|in)\s+(\d+)\s*seconds?/i)||message.match(/(\d+)\s*segundos?/i);
-  if(/security purposes|rate.limit|too many requests|limite.*tentativa|429/i.test(message)){
-   const cooldown=seconds?Number(seconds[1]):60;
-   signupCooldownUntil=Date.now()+Math.max(1,cooldown)*1000;
-   refreshSignupCooldown();
-   if(!signupTimer)signupTimer=setInterval(refreshSignupCooldown,1000);
-   setmsg('Por segurança, o cadastro está temporariamente bloqueado. Aguarde '+cooldown+' segundos antes de tentar novamente. Se já criou a conta, confira seu e-mail ou use Entrar.');
-  }else{
-   setmsg('Não foi possível criar a conta: '+message);
-  }
- }
- el('arenaSignup').onclick=async()=>{
-  if(Date.now()<signupCooldownUntil){refreshSignupCooldown();return}
-  const btn=el('arenaSignup');btn.disabled=true;
-  const email=el('arenaEmail').value.trim().toLowerCase(),password=el('arenaPassword').value;
-  if(!email||password.length<8){setmsg('Informe um e-mail válido e senha com pelo menos 8 caracteres.');btn.disabled=false;return}
-  try{
-   setmsg('Enviando cadastro...');
-   await rest('/auth/v1/signup',{method:'POST',body:JSON.stringify({email,password})});
-   el('arenaPassword').value='';
-   setmsg('Cadastro enviado. Verifique seu e-mail e confirme a conta se o Supabase solicitar. Depois entre pela tela inicial e aguarde a aprovação de Raphael ou Luis.');
-  }catch(e){handleSignupError(e)}finally{if(Date.now()>=signupCooldownUntil)btn.disabled=false}
- };
- el('arenaRecover').onclick=async()=>{
-  const email=el('arenaEmail').value.trim().toLowerCase();
-  if(!email)return setmsg('Informe seu e-mail para recuperar a senha.');
-  try{
-   await rest('/auth/v1/recover',{method:'POST',body:JSON.stringify({email})});
-   setmsg('Se o e-mail estiver cadastrado, você receberá instruções para recuperar a senha.');
-  }catch(e){setmsg('Recuperação de senha: '+e.message)}
- };
- el('arenaRequest').onclick=async()=>{
-  const professional=el('arenaProfessional').value;
-  if(!people.some(x=>x.name===professional))return setmsg('Escolha um nome válido da lista.');
-  try{
-   await api('bmw_x1_members',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({user_id:user.id,professional,status:'pending',requester_email:String(user.email||'').toLowerCase()})});
-   setmsg('Solicitação enviada! Aguarde aprovação de Raphael ou Luis.');await connect();
-  }catch(e){setmsg('Não foi possível solicitar aprovação: '+e.message)}
- };
- async function leave(){const access=local?.access_token;local=null;user=null;member=null;localStorage.removeItem('bmw-x1-arena-auth');renderAccess();setmsg('Você saiu da sua conta da Arena.');if(access)try{await rest('/auth/v1/logout',{method:'POST',headers:{Authorization:'Bearer '+access}})}catch{}}
- el('arenaLeave').onclick=()=>window.bmwLogout?.();
  const age=iso=>{try{return new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}catch{return ''}};
 
  const avatar=name=>safe(String(name||'?').split(/\s+/).filter(Boolean).slice(0,2).map(v=>v[0]).join('').toUpperCase());
