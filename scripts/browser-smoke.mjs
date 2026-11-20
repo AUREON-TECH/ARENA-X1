@@ -105,14 +105,14 @@ try {
   });
   assert.ok(swInfo && typeof swInfo.scope === 'string', 'Service Worker registration details must be captured');
   assert.match(swInfo.scope, /\/ARENA-X1\/$/);
-  assert.match(swInfo.activeScript, /sw\.js\?v=47$/);
+  assert.match(swInfo.activeScript, /sw\.js\?v=48$/);
   console.log('Service Worker active: ' + swInfo.activeScript);
   const socialPrecache = await page.waitForFunction(async () => {
     const cache = await caches.open('arena-x1-stable-v48');
     return Boolean(await cache.match(new URL('result-social.js', location.href).toString()));
   }, null, { timeout: 20000 }).then(() => true).catch(() => false);
   assert.ok(socialPrecache, 'Results social script must be included in the active v48 PWA precache');
-  const swResponse = await context.request.get(new URL('sw.js?v=47', baseUrl).toString());
+  const swResponse = await context.request.get(new URL('sw.js?v=48', baseUrl).toString());
   assert.equal(swResponse.status(), 200, 'Service Worker must load');
   assert.match(await swResponse.text(), /arena-x1-stable-v48/);
 
