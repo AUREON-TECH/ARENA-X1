@@ -475,6 +475,23 @@ try {
           null,
           { timeout: 15000 }
         );
+        for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }]) {
+          await mockPage.setViewportSize(viewport);
+          const dimensions = await mockPage.evaluate(() => ({
+            width: window.innerWidth,
+            documentWidth: document.documentElement.scrollWidth,
+            muralWidth: document.getElementById('arenaFeedArea')?.scrollWidth || 0,
+            muralClientWidth: document.getElementById('arenaFeedArea')?.clientWidth || 0
+          }));
+          assert.ok(
+            dimensions.documentWidth <= dimensions.width + 1,
+            'Authenticated Mural horizontal overflow at ' + viewport.width + 'px: ' + JSON.stringify(dimensions)
+          );
+          assert.ok(
+            dimensions.muralWidth <= dimensions.muralClientWidth + 1,
+            'Mural content overflow at ' + viewport.width + 'px: ' + JSON.stringify(dimensions)
+          );
+        }
         await mockPage.locator('[data-arena-view="posts"]').click();
         await mockPage.locator('#arenaPostCategory').selectOption('desafio');
         await mockPage.locator('#arenaPostText').fill('Meta batida!');
