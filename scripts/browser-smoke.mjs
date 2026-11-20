@@ -94,7 +94,7 @@ try {
   assert.equal(manifestJson.start_url, '/ARENA-X1/');
   assert.equal(manifestJson.scope, '/ARENA-X1/');
 
-  await page.waitForFunction(async () => {
+  const swInfoHandle = await page.waitForFunction(async () => {
     const registration = await navigator.serviceWorker.getRegistration();
     const scriptUrl = registration?.active?.scriptURL || '';
     const version = scriptUrl ? new URL(scriptUrl).searchParams.get('v') : null;
@@ -104,18 +104,15 @@ try {
       !registration.installing &&
       !registration.waiting
     ) {
-      // Capture the exact registration observed by the wait predicate; do not
-      // re-read a ServiceWorkerRegistration after the activation condition.
-      window.__arenaSwInfo = {
+      return {
         scope: registration.scope || '',
         state: registration.active.state || '',
         activeScript: scriptUrl
       };
-      return true;
     }
     return false;
   }, null, { timeout: 45000 });
-  const swInfo = await page.evaluate(() => window.__arenaSwInfo || null);
+  const swInfo = await swInfoHandle.jsonValue();
   assert.ok(swInfo && typeof swInfo.scope === 'string', 'Service Worker registration details must be captured');
   assert.match(swInfo.scope, /\/ARENA-X1\/$/);
   assert.match(swInfo.activeScript, /sw\.js\?v=47$/);
