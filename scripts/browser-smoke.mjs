@@ -177,7 +177,7 @@ try {
     });
     if (arenaResponse.status() === 200) {
       const arenaSource = await arenaResponse.text();
-      if (!/arenaAuthForm|arenaSignup|arenaRecover|auth\\/v1\\/signup/.test(arenaSource)) {
+      if (!['arenaAuthForm', 'arenaSignup', 'arenaRecover', 'auth/v1/signup'].some(token => arenaSource.includes(token))) {
         arenaAssetUpdated = true;
         break;
       }
