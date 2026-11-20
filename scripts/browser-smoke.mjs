@@ -217,6 +217,13 @@ try {
         requested_at: '2026-11-19T18:00:00Z',
         requester_email: 'pendente@example.invalid'
       };
+      const pendingReject = {
+        user_id: '44444444-4444-4444-8444-444444444444',
+        professional: 'Profissional Recusado',
+        status: 'pending',
+        requested_at: '2026-11-19T18:30:00Z',
+        requester_email: 'recusado@example.invalid'
+      };
       const currentMember = mode === 'request' ? null : {
         user_id: currentId,
         professional: 'Profissional Teste',
@@ -225,7 +232,7 @@ try {
         requester_email: email
       };
       const state = {
-        members: adminMode ? [pending, approved] : currentMember ? [currentMember] : [],
+        members: adminMode ? [pending, pendingReject, approved] : currentMember ? [currentMember] : [],
         posts: [{
           id: 1,
           user_id: adminMode ? approvedId : currentId,
@@ -235,14 +242,21 @@ try {
           pinned: false,
           created_at: '2026-11-19T18:00:00Z'
         }],
-        comments: [],
+        comments: adminMode ? [{
+          id: 1,
+          post_id: 1,
+          user_id: approvedId,
+          professional: 'Profissional Aprovado',
+          body: 'Comentário para moderação',
+          created_at: '2026-11-19T18:05:00Z'
+        }] : [],
         likes: [],
         reactions: [],
         resultComments: [],
         resultLikes: [],
         writes: [],
         nextPostId: 2,
-        nextCommentId: 1,
+        nextCommentId: 2,
         signupCalls: 0,
         refreshCalls: 0
       };
@@ -508,6 +522,11 @@ try {
         { timeout: 20000 }
       );
       assert.equal(await mockPage.locator('#bmwGate').isVisible(), false, mode + ': access gate should close after mocked authorization');
+      await mockPage.waitForFunction(
+        () => document.getElementById('rankRows')?.innerText.includes('Profissional Teste'),
+        null,
+        { timeout: 15000 }
+      );
 
       if (mode === 'member' || mode === 'member-expiring') {
         await mockPage.locator('#arenaTab').click();
@@ -574,6 +593,12 @@ try {
           null,
           { timeout: 15000 }
         );
+        await mockPage.locator('[data-deletecomment]').click();
+        await mockPage.waitForFunction(
+          () => window.__mockState.comments.length === 0,
+          null,
+          { timeout: 10000 }
+        );
 
         await mockPage.locator('[data-tab="professional"]').click();
         await mockPage.waitForFunction(
@@ -600,6 +625,12 @@ try {
           null,
           { timeout: 10000 }
         );
+        await mockPage.locator('[data-socialdelete]').click();
+        await mockPage.waitForFunction(
+          () => window.__mockState.resultComments.length === 0,
+          null,
+          { timeout: 10000 }
+        );
       } else {
         await mockPage.waitForFunction(
           () => document.getElementById('arenaReviewList')?.innerText.includes('Profissional Pendente'),
@@ -612,6 +643,51 @@ try {
           null,
           { timeout: 10000 }
         );
+        await mockPage.waitForFunction(
+          () => document.getElementById('arenaReviewList')?.innerText.includes('Profissional Recusado'),
+          null,
+          { timeout: 10000 }
+        );
+        await mockPage.locator('#arenaReviewList [data-reject]').click();
+        await mockPage.waitForFunction(
+          () => window.__mockState.members.find(row => row.professional === 'Profissional Recusado')?.status === 'rejected',
+          null,
+          { timeout: 10000 }
+        );
+
+        await mockPage.locator('#arenaTab').click();
+        await mockPage.waitForFunction(
+          () => document.getElementById('arenaFeed')?.innerText.includes('Post de teste'),
+          null,
+          { timeout: 10000 }
+        );
+        await mockPage.locator('[data-commenttoggle="1"]').click();
+        await mockPage.waitForFunction(
+          () => document.getElementById('arenaComments1')?.innerText.includes('Comentário para moderação'),
+          null,
+          { timeout: 10000 }
+        );
+        await mockPage.locator('[data-deletecomment="1"]').click();
+        await mockPage.waitForFunction(
+          () => window.__mockState.comments.length === 0,
+          null,
+          { timeout: 10000 }
+        );
+        await mockPage.locator('.arena-message-menu summary').click();
+        await mockPage.locator('[data-pin="1"]').click();
+        await mockPage.waitForFunction(
+          () => window.__mockState.posts.find(post => post.id === 1)?.pinned === true,
+          null,
+          { timeout: 10000 }
+        );
+        await mockPage.locator('.arena-message-menu summary').click();
+        await mockPage.locator('[data-pin="1"]').click();
+        await mockPage.waitForFunction(
+          () => window.__mockState.posts.find(post => post.id === 1)?.pinned === false,
+          null,
+          { timeout: 10000 }
+        );
+        await mockPage.evaluate(() => window.nav('management'));
         await mockPage.waitForFunction(
           () => document.getElementById('arenaModPosts')?.innerText.includes('Post de teste'),
           null,
