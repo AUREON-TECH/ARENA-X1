@@ -264,8 +264,14 @@
    if(!t)return;
    // Autorizações são conferidas no banco; só uma resposta válida pode revogar a interface.
    const manager=await isManager(t);
+   if(manager){
+    if(!admin){
+     storeAuth(gateSession,true);
+     await enableApp(true);
+    }
+    return;
+   }
    if(admin){
-    if(manager)return;
     // Confirme a identidade antes de concluir que o privilégio foi removido.
     const u=await rest('/auth/v1/user',{headers:baseHeaders(t)});
     if(!u?.id)return;

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"><meta name="arena-build" content="arena-x1-v47"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8"><meta name="arena-build" content="arena-x1-v48"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0a1423"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="ARENA X1">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icon.svg">
 <title>ARENA X1 · Competição 2026</title>
@@ -196,7 +196,7 @@ function nav(id){
 }
 function menu(){for(const id of ['management','rules'])document.querySelector('[data-tab="'+id+'"]').classList.toggle('hidden',!admin);document.getElementById('goManagement').classList.toggle('hidden',!admin);document.getElementById('loginTab').classList.toggle('hidden',admin||accessGranted);document.getElementById('logoutBtn').classList.toggle('hidden',!accessGranted);document.querySelectorAll('.bonus-review').forEach(x=>x.classList.toggle('hidden',!admin));}
 async function rest(path,opts={}){const headers={'apikey':KEY,'Content-Type':'application/json',...(opts.headers||{})};const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),15000);let result;try{result=await fetch(BASE+path,{...opts,headers,cache:'no-store',signal:controller.signal})}catch(error){throw Error(error.name==='AbortError'?'Tempo esgotado ao conectar ao Supabase (15 segundos). Verifique sua conexão e tente novamente.':'Falha de conexão com Supabase: '+error.message)}finally{clearTimeout(timeout)}const body=await result.text();let data;try{data=body?JSON.parse(body):null}catch{data=body}if(!result.ok)throw Error((data&&(data.message||data.msg||data.error_description))||'HTTP '+result.status);return data}
-async function token(){if(!session)return null;if(Date.now()<(session.expires_at||0)*1000-45000)return session.access_token;try{const next=await rest('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:session.refresh_token})});session={...next,expires_at:Math.floor(Date.now()/1000)+next.expires_in};sessionStorage.setItem('bmwx1-auth',JSON.stringify(session));return session.access_token}catch{session=null;admin=false;sessionStorage.removeItem('bmwx1-auth');menu();return null}}
+async function token(){const getToken=window.bmwAppToken;if(typeof getToken!=='function')return null;return await getToken()}
 async function verifyAdmin(){const t=await token();if(!t)return false;const data=await rest('/rest/v1/bmw_x1_admin_allowlist?select=email&limit=1',{headers:{Authorization:'Bearer '+t}});return Array.isArray(data)&&data.length===1}
 function person(name){return people.find(x=>x.name===name)}
 function approved(name,month,category){return changes.filter(x=>x.person===name&&(!month||x.month===month)&&(!category||x.category===category)).reduce((n,x)=>n+Number(x.points||0),0)}
@@ -315,7 +315,7 @@ document.getElementById('saveBtn').onclick=save;document.getElementById('reloadB
 document.getElementById('installBtn').onclick=()=>{if(window.installPrompt){window.installPrompt.prompt();window.installPrompt=null}else alert('Android: Chrome → menu ⋮ → Instalar app. iPhone: Safari → Compartilhar → Adicionar à Tela de Início.')};
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.installPrompt=e});
 menu();
-if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=47',{updateViaCache:'none'}).then(w=>w.update()).catch(()=>{}));
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=48',{updateViaCache:'none'}).then(w=>w.update()).catch(()=>{}));
 
 </script>
 <script>
