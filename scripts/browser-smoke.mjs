@@ -116,7 +116,12 @@ try {
   assert.equal(swResponse.status(), 200, 'Service Worker must load');
   assert.match(await swResponse.text(), /arena-x1-stable-v49/);
 
-  await page.evaluate(() => window.nav('arena'));
+  await page.locator('#arenaTab').click();
+  assert.equal(
+    await page.locator('#arenaTab').evaluate(element => element.classList.contains('active')),
+    false,
+    'Unauthenticated Arena button must not activate the private view'
+  );
   await page.waitForFunction(
     () => document.getElementById('bmwGateMessage')?.style.display === 'block',
     null,
