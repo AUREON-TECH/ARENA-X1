@@ -181,7 +181,8 @@
    if(password.length<8||password!==el('bmwGateConfirm').value){message(password.length<8?'A senha precisa ter pelo menos oito caracteres.':'As duas senhas estão diferentes. Digite novamente.');return}
    setBusy(true);message('Criando sua conta, confira a mensagem aqui...');
    try{
-    const created=await rest('/auth/v1/signup',{method:'POST',body:JSON.stringify({email,password})});
+    const redirectTo=new URL('./',window.location.href).toString();
+    const created=await rest('/auth/v1/signup?redirect_to='+encodeURIComponent(redirectTo),{method:'POST',body:JSON.stringify({email,password})});
     el('bmwGatePassword').value='';el('bmwGateConfirm').value='';
     signupMode=false;setBusy(false);setSignupMode(false);
     if(created?.access_token&&created?.refresh_token){

@@ -73,6 +73,7 @@ assert.match(html,/window\.bmwArenaOpen\(\)/);
 assert.ok(html.includes("gate.style.display='block'"),'Unauthenticated navigation must display the access message');
 assert.match(gate,/password!==el\('bmwGateConfirm'\)\.value/);
 assert.match(gate,/auth\/v1\/signup/);
+assert.match(gate,/auth\/v1\/signup\?redirect_to=/,'Email confirmation must return to the current canonical app URL');
 assert.ok(html.includes("async function token(){const getToken=window.bmwAppToken;if(typeof getToken!=='function')return null;return await getToken()}"),'Manager token refresh must use the shared session controller');
 assert.match(gate,/if\(manager\)\{\s*if\(!admin\)\{\s*storeAuth\(gateSession,true\);\s*await enableApp\(true\);\s*\}\s*return;\s*\}/,'Manager revalidation must restore the allowlisted role');
 assert.match(arena,/const emojiSet=\['🔥','👏','💪','😂','👀','🏆'\]/);

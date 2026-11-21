@@ -268,6 +268,7 @@ try {
         nextPostId: 2,
         nextCommentId: 2,
         signupCalls: 0,
+        signupRedirectTo: null,
         refreshCalls: 0,
         failNextRefresh: false
       };
@@ -297,6 +298,7 @@ try {
         if (path.endsWith('/auth/v1/user')) return json(user);
         if (path.endsWith('/auth/v1/signup') && method === 'POST') {
           state.signupCalls++;
+          state.signupRedirectTo = url.searchParams.get('redirect_to');
           return json({ user: { id: currentId, email } });
         }
         if (path.endsWith('/auth/v1/token')) {
@@ -484,6 +486,7 @@ try {
         );
         const signupState = await mockPage.evaluate(() => window.__mockState);
         assert.equal(signupState.signupCalls, 1, 'Signup flow should reach the mocked confirmation-required response');
+        assert.equal(signupState.signupRedirectTo, new URL('./', baseUrl).toString(), 'Confirmation email must return to the canonical app base URL');
         assert.equal(signupState.writes.filter(x => x.path.endsWith('/bmw_x1_members') && x.method === 'POST').length, 0, 'No approval request is sent before email confirmation');
         assert.deepEqual(mockErrors, [], 'Signup mock browser errors: ' + mockErrors.join('; '));
         console.log('BMW X1 mocked Chromium flow PASS: signup confirmation-required state — no production API writes.');
@@ -555,6 +558,11 @@ try {
           null,
           { timeout: 15000 }
         );
+        const authenticatedDuplicateIds = await mockPage.locator('[id]').evaluateAll(nodes => {
+          const ids = nodes.map(node => node.id).filter(Boolean);
+          return [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
+        });
+        assert.deepEqual(authenticatedDuplicateIds, [], 'Authenticated Arena DOM must not contain duplicate IDs');
         for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }]) {
           await mockPage.setViewportSize(viewport);
           const dimensions = await mockPage.evaluate(() => ({
