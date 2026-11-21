@@ -583,9 +583,18 @@ try {
         console.log('Authenticated Mural responsive: PASS at 390px and 768px.');
         await mockPage.locator('[data-arena-view="posts"]').click();
         await mockPage.locator('#arenaPostCategory').selectOption('desafio');
-        await mockPage.locator('#arenaPostText').fill('Meta batida!');
-        await mockPage.locator('.arena-emoji-insert').first().click();
-        assert.match(await mockPage.locator('#arenaPostText').inputValue(), /🔥/);
+        const emojiField = mockPage.locator('#arenaPostText');
+        const emojiButtons = mockPage.locator('.arena-emoji-insert');
+        const insertEmojis = ['🔥', '👏', '💪', '😂', '👀', '🏆', '❤️', '🚀', '😎'];
+        assert.equal(await emojiButtons.count(), insertEmojis.length, 'All nine post emoji shortcuts must render');
+        for (let index = 0; index < insertEmojis.length; index++) {
+          await emojiField.fill('');
+          await emojiButtons.nth(index).click();
+          assert.equal(await emojiField.inputValue(), insertEmojis[index], 'Post emoji shortcut ' + insertEmojis[index]);
+        }
+        await emojiField.fill('Meta batida!');
+        await emojiButtons.first().click();
+        assert.equal(await emojiField.inputValue(), 'Meta batida!🔥');
         await mockPage.locator('#arenaPostForm button[type="submit"]').click();
         await mockPage.waitForFunction(
           () => document.getElementById('arenaFeed')?.innerText.includes('Meta batida!🔥'),
@@ -598,10 +607,24 @@ try {
           null,
           { timeout: 10000 }
         );
-        await mockPage.locator('[data-react="1"][data-emoji="🔥"]').waitFor({ state: 'visible', timeout: 10000 });
-        await mockPage.locator('[data-react="1"][data-emoji="🔥"]').click();
+        const reactionEmojis = ['🔥', '👏', '💪', '😂', '👀', '🏆'];
+        assert.equal(await mockPage.locator('[data-react="1"]').count(), reactionEmojis.length, 'All six reaction choices must render');
+        for (const emoji of reactionEmojis) {
+          const reactionButton = mockPage.locator('[data-react="1"][data-emoji="' + emoji + '"]');
+          await reactionButton.waitFor({ state: 'visible', timeout: 10000 });
+          await reactionButton.click();
+          await mockPage.waitForFunction(
+            expected => window.__mockState.reactions.length === 1 && window.__mockState.reactions[0].emoji === expected,
+            emoji,
+            { timeout: 10000 }
+          );
+        }
+        const finalReaction = mockPage.locator('[data-react="1"][data-emoji="🏆"]');
+        await finalReaction.click();
+        await mockPage.waitForFunction(() => window.__mockState.reactions.length === 0, null, { timeout: 10000 });
+        await finalReaction.click();
         await mockPage.waitForFunction(
-          () => document.querySelector('[data-react="1"][data-emoji="🔥"]')?.classList.contains('active'),
+          () => window.__mockState.reactions.length === 1 && window.__mockState.reactions[0].emoji === '🏆',
           null,
           { timeout: 10000 }
         );
