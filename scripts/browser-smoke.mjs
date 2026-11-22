@@ -121,7 +121,8 @@ try {
   assert.equal(swResponse.status(), 200, 'Service Worker must load');
   assert.match(await swResponse.text(), new RegExp('arena-x1-stable-v' + expectedVersion));
 
-  await page.locator('#arenaTab').click();
+  // The public access gate overlays the nav; authenticated mock flows click the real Arena tab.
+  await page.evaluate(() => window.nav('arena'));
   await page.waitForFunction(
     () => document.getElementById('bmwGateMessage')?.style.display === 'block',
     null,
