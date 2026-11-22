@@ -826,12 +826,21 @@ try {
       }
       assert.deepEqual(mockErrors, [], mode + ': unexpected browser errors: ' + mockErrors.join('; '));
       await mockPage.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
-      await mockPage.waitForFunction(
-        () => document.body.classList.contains('bmw-authorized'),
-        null,
-        { timeout: 20000 }
-      );
-      console.log('BMW X1 mocked Chromium flow PASS: ' + mode + ' — session restored; no production API writes.');
+      if (mode === 'admin-luis') {
+        await mockPage.waitForFunction(
+          () => !document.body.classList.contains('bmw-authorized'),
+          null,
+          { timeout: 20000 }
+        );
+        console.log('BMW X1 mocked Chromium flow PASS: admin-luis — logout remains effective after reload.');
+      } else {
+        await mockPage.waitForFunction(
+          () => document.body.classList.contains('bmw-authorized'),
+          null,
+          { timeout: 20000 }
+        );
+        console.log('BMW X1 mocked Chromium flow PASS: ' + mode + ' — session restored; no production API writes.');
+      }
     } finally {
       await mockContext.close();
     }
