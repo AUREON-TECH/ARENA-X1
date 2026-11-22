@@ -50,6 +50,7 @@ assert.match(html,/bmw_x1_campaign_snapshot/);
 assert.match(html,/id="rankingDataWarning"/,'Ranking must expose pending-bonus warning');
 assert.match(html,/bonus_suggested_pending_approval/,'Pending bonus state must be surfaced');
 assert.match(html,/RANKING PROVISÓRIO/,'Pending bonus warning must be explicit');
+assert.match(html,/Presença e pontualidade também são estimadas por dias de calendário.*não comprovam comparecimento ou pontualidade efetivos/i,'Ranking must disclose that attendance and punctuality XP is provisional');
 assert.match(html,/Acesso exclusivo para Raphael e Luis/,'Manager login guidance must match the verified allowlisted accounts');
 assert.doesNotMatch(html,/cadastro criado, aguardando confirmação por e-mail/i,'Do not publish stale manager confirmation instructions');
 assert.match(html,/!accessGranted/);
