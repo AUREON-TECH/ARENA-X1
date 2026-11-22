@@ -330,6 +330,8 @@ try {
           return json([{
             payload: {
               data_through: '2026-11-19',
+              status: 'bonus_suggested_pending_approval',
+              notes: ['Sugestões de TOP/ticket/casais não são automaticamente creditadas', 'Consultoria e Closer: eficiência/entrada não aplicadas sem auditoria de VGV líquido e entrada'],
               records: [{
                 name: 'Profissional Teste',
                 role: 'CAPTADOR',
@@ -552,6 +554,15 @@ try {
         null,
         { timeout: 15000 }
       );
+      await mockPage.waitForFunction(
+        () => {
+          const warning = document.getElementById('rankingDataWarning');
+          return warning && !warning.hidden && /RANKING PROVISÓRIO/i.test(warning.textContent);
+        },
+        null,
+        { timeout: 10000 }
+      );
+      assert.match(await mockPage.locator('#rankingDataWarning').innerText(), /ticket e casais/i);
 
       if (mode === 'member' || mode === 'member-expiring') {
         await mockPage.locator('#arenaTab').click();
