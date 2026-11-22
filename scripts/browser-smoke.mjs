@@ -563,6 +563,7 @@ try {
         { timeout: 10000 }
       );
       assert.match(await mockPage.locator('#rankingDataWarning').innerText(), /ticket e casais/i);
+      assert.match(await mockPage.locator('#rankingDataWarning').innerText(), /presença e pontualidade.*dias de calendário.*não comprovam/i);
 
       if (mode === 'member' || mode === 'member-expiring') {
         await mockPage.locator('#arenaTab').click();
