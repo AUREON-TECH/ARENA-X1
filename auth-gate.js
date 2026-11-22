@@ -248,7 +248,9 @@
  };
  el('bmwGateRecheck').onclick=checkSession;
  async function logOut(){
-  const t=await jwt();
+  let t=null;
+  // A revogação remota pode falhar por falta de rede; o logout local nunca deve depender dela.
+  try{t=await jwt()}catch{}
   clearClient();show('bmwGateAuth');message('Sessão encerrada. Entre novamente para acessar a competição.');
   try{if(t)await rest('/auth/v1/logout',{method:'POST',headers:baseHeaders(t)})}catch{}
   window.location.reload();
