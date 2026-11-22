@@ -97,4 +97,8 @@ const shellPaths=[...shellMatch[1].matchAll(/'([^']+)'/g)].map(match=>match[1]);
 assert.equal(shellPaths.length,new Set(shellPaths).size,'Arquivos duplicados no pré-cache PWA');
 for(const path of shellPaths)assert.ok(fs.existsSync(path.replace(/^\.\//,'')),'Arquivo ausente no pré-cache: '+path);
 assert.ok(fs.existsSync('bmw-x1-hero.webp'));
+const browserSmoke=read('scripts/browser-smoke.mjs');
+assert.match(browserSmoke,/readFileSync\(new URL\('\.\.\/index\.html', import\.meta\.url\)/,'Chromium smoke must derive the expected build from source');
+assert.match(browserSmoke,/expectedVersion/,'Chromium smoke must verify the matching live Service Worker version');
+assert.doesNotMatch(browserSmoke,/arena-x1-v49|arena-x1-stable-v49|sw\.js\?v=49/,'Chromium smoke must not be pinned to a retired PWA version');
 console.log('BMW X1: código, privacidade, login único, mural, comentários, novos cadastros e PWA verificados.');
