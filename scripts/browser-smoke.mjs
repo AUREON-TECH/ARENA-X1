@@ -1,8 +1,13 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 
 const baseUrl = process.env.ARENA_URL || 'https://aureon-tech.github.io/ARENA-X1/';
-const expectedBuild = 'arena-x1-v49';
+const sourceHtml = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const expectedBuild = sourceHtml.match(/name="arena-build" content="(arena-x1-v\d+)"/)?.[1];
+assert.ok(expectedBuild, 'Source index.html must declare its Arena build version');
+const expectedVersion = expectedBuild.match(/v(\d+)$/)?.[1];
+assert.ok(expectedVersion, 'Source Arena build version must include a numeric version');
 const browser = await chromium.launch({ headless: true, channel: 'chrome' });
 const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
 const page = await context.newPage();
@@ -105,16 +110,16 @@ try {
   });
   assert.ok(swInfo && typeof swInfo.scope === 'string', 'Service Worker registration details must be captured');
   assert.match(swInfo.scope, /\/ARENA-X1\/$/);
-  assert.match(swInfo.activeScript, /sw\.js\?v=49$/);
+  assert.match(swInfo.activeScript, new RegExp('sw\\.js\\?v=' + expectedVersion + '$'));
   console.log('Service Worker active: ' + swInfo.activeScript);
   const socialPrecache = await page.waitForFunction(async () => {
-    const cache = await caches.open('arena-x1-stable-v49');
+    const cache = await caches.open('arena-x1-stable-v' + expectedVersion);
     return Boolean(await cache.match(new URL('result-social.js', location.href).toString()));
   }, null, { timeout: 20000 }).then(() => true).catch(() => false);
-  assert.ok(socialPrecache, 'Results social script must be included in the active v49 PWA precache');
-  const swResponse = await context.request.get(new URL('sw.js?v=49', baseUrl).toString());
+  assert.ok(socialPrecache, 'Results social script must be included in the active v' + expectedVersion + ' PWA precache');
+  const swResponse = await context.request.get(new URL('sw.js?v=' + expectedVersion, baseUrl).toString());
   assert.equal(swResponse.status(), 200, 'Service Worker must load');
-  assert.match(await swResponse.text(), /arena-x1-stable-v49/);
+  assert.match(await swResponse.text(), new RegExp('arena-x1-stable-v' + expectedVersion));
 
   await page.evaluate(() => window.nav('arena'));
   await page.waitForFunction(
@@ -184,11 +189,11 @@ try {
     }
     await page.waitForTimeout(5000);
   }
-  assert.ok(arenaAssetUpdated, 'Published arena.js must be the v49 single-auth version');
+  assert.ok(arenaAssetUpdated, 'Published arena.js must use the single-auth flow');
   assert.equal(
     await page.locator('#arenaAuthForm, #arenaSignup, #arenaRecover').count(),
     0,
-    'Arena must not expose a second login/signup path after the v49 Service Worker takes control'
+    'Arena must not expose a second login/signup path after the current Service Worker takes control'
   );
   await context.setOffline(true);
   await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
