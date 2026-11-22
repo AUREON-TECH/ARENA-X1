@@ -791,12 +791,11 @@ try {
             window.__mockState.failNextRefresh = true;
             window.eval('session.expires_at = 0');
           });
-          await Promise.all([
-            mockPage.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 10000 }),
-            mockPage.locator('#logoutBtn').click()
-          ]);
+          await mockPage.locator('#logoutBtn').click();
           await mockPage.waitForFunction(
-            () => !document.body.classList.contains('bmw-authorized'),
+            () => !document.body.classList.contains('bmw-authorized') &&
+              !sessionStorage.getItem('bmwx1-auth') &&
+              !localStorage.getItem('bmw-x1-arena-auth'),
             null,
             { timeout: 10000 }
           );
