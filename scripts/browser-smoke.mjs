@@ -112,10 +112,10 @@ try {
   assert.match(swInfo.scope, /\/ARENA-X1\/$/);
   assert.match(swInfo.activeScript, new RegExp('sw\\.js\\?v=' + expectedVersion + '$'));
   console.log('Service Worker active: ' + swInfo.activeScript);
-  const socialPrecache = await page.waitForFunction(async () => {
-    const cache = await caches.open('arena-x1-stable-v' + expectedVersion);
+  const socialPrecache = await page.waitForFunction(async version => {
+    const cache = await caches.open('arena-x1-stable-v' + version);
     return Boolean(await cache.match(new URL('result-social.js', location.href).toString()));
-  }, null, { timeout: 20000 }).then(() => true).catch(() => false);
+  }, expectedVersion, { timeout: 20000 }).then(() => true).catch(() => false);
   assert.ok(socialPrecache, 'Results social script must be included in the active v' + expectedVersion + ' PWA precache');
   const swResponse = await context.request.get(new URL('sw.js?v=' + expectedVersion, baseUrl).toString());
   assert.equal(swResponse.status(), 200, 'Service Worker must load');
