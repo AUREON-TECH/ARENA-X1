@@ -283,7 +283,7 @@ try {
         expires_at: mode === 'member-expiring' ? Math.floor(Date.now() / 1000) + 20 : 4102444800
       };
       window.__mockState = state;
-      if (mode !== 'signup') localStorage.setItem('bmw-x1-arena-auth', JSON.stringify(session));
+      if (mode !== 'signup' && localStorage.getItem('__audit_logout_no_restore') !== '1') localStorage.setItem('bmw-x1-arena-auth', JSON.stringify(session));
       const json = (data, status = 200) => new Response(JSON.stringify(data), {
         status,
         headers: { 'Content-Type': 'application/json' }
@@ -785,6 +785,27 @@ try {
           assert.equal(stability.admin, true, 'Allowlisted manager role must survive revalidation');
           assert.equal(stability.refreshCalls, 0, 'Legacy token helper must delegate to the shared session controller');
           console.log('BMW X1 manager session resilience PASS: role restoration and transient refresh preservation.');
+          await mockPage.evaluate(() => {
+            localStorage.setItem('__audit_logout_no_restore', '1');
+            window.__mockState.failNextRefresh = true;
+            window.eval('session.expires_at = 0');
+          });
+          await Promise.all([
+            mockPage.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 10000 }),
+            mockPage.locator('#logoutBtn').click()
+          ]);
+          await mockPage.waitForFunction(
+            () => !document.body.classList.contains('bmw-authorized'),
+            null,
+            { timeout: 10000 }
+          );
+          const logoutState = await mockPage.evaluate(() => ({
+            localSession: localStorage.getItem('bmw-x1-arena-auth'),
+            managerSession: sessionStorage.getItem('bmwx1-auth')
+          }));
+          assert.equal(logoutState.localSession, null, 'Logout must clear the professional session even when token refresh fails');
+          assert.equal(logoutState.managerSession, null, 'Logout must clear the manager session even when token refresh fails');
+          console.log('BMW X1 logout resilience PASS: local session cleared after temporary refresh failure.');
         }
       }
 
