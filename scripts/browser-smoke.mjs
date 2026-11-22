@@ -463,6 +463,7 @@ try {
 
     const mockPage = await mockContext.newPage();
     const mockErrors = [];
+    let preLogoutDmlCount = 0;
     mockPage.on('pageerror', error => mockErrors.push(error.message));
     mockPage.on('dialog', dialog => dialog.accept());
     try {
@@ -786,6 +787,7 @@ try {
           assert.equal(stability.admin, true, 'Allowlisted manager role must survive revalidation');
           assert.equal(stability.refreshCalls, 0, 'Legacy token helper must delegate to the shared session controller');
           console.log('BMW X1 manager session resilience PASS: role restoration and transient refresh preservation.');
+          preLogoutDmlCount = await mockPage.evaluate(() => window.__mockState.writes.filter(item => ['POST', 'PATCH', 'DELETE'].includes(item.method)).length);
           await mockPage.evaluate(() => {
             localStorage.setItem('__audit_logout_no_restore', '1');
             window.__mockState.failNextRefresh = true;
@@ -816,7 +818,7 @@ try {
       assert.deepEqual(dynamicDuplicateIds, [], mode + ': dynamic DOM IDs must remain unique');
       const mockState = await mockPage.evaluate(() => window.__mockState);
       const dml = mockState.writes.filter(item => ['POST', 'PATCH', 'DELETE'].includes(item.method));
-      assert.ok(dml.length > 0, mode + ': mocked UI writes should be recorded in memory only');
+      assert.ok(dml.length > 0 || preLogoutDmlCount > 0, mode + ': mocked UI writes should be recorded in memory only');
       if (mode === 'member-expiring') {
         assert.equal(mockState.refreshCalls, 1, 'Near-expiry session should refresh its token once');
         const refreshedToken = await mockPage.evaluate(() => JSON.parse(localStorage.getItem('bmw-x1-arena-auth') || 'null')?.refresh_token);
