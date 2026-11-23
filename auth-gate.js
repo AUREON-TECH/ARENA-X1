@@ -246,11 +246,15 @@
  };
  el('bmwGateRequestButton').onclick=async()=>{
   if(busy)return;
-  const t=await jwt();if(!t||!user)return;
   const professional=el('bmwGateProfessional').value;
   if(!professional)return message('Selecione um profissional.');
-  setBusy(true);message('Registrando pedido de aprovação...');
+  setBusy(true);
   try{
+   // Inclua a renovação do token no tratamento de erros: falhas transitórias
+   // não devem gerar rejeição não tratada nem apagar a sessão do profissional.
+   const t=await jwt();
+   if(!t||!user)return;
+   message('Registrando pedido de aprovação...');
    await rest('/rest/v1/bmw_x1_members',{method:'POST',headers:{...baseHeaders(t),Prefer:'return=minimal'},body:JSON.stringify({user_id:user.id,requester_email:String(user.email||'').toLowerCase(),professional,status:'pending'})});
    await checkSession();
   }catch(e){message('Não foi possível registrar a solicitação: '+friendlyMemberRequestError(e))}
