@@ -123,4 +123,15 @@ for(const constraint of [
 assert.match(dbMigration,/char_length\(body\) BETWEEN 1 AND 50/,'Social text must be capped at 50 characters in PostgreSQL');
 assert.match(dbMigration,/emoji IN \('🔥','👏','💪','😂','👀','🏆'\)/,'Database reaction values must match the six UI reaction choices');
 
+
+const cleanupMigration=read('supabase/migrations/20261123013748_bmw_x1_remove_duplicate_check_constraints.sql');
+for(const constraint of [
+ 'bmw_x1_posts_category_ck',
+ 'bmw_x1_members_status_ck',
+ 'bmw_x1_reactions_emoji_ck',
+ 'bmw_x1_roster_role_ck'
+]){
+ assert.match(cleanupMigration,new RegExp('DROP CONSTRAINT IF EXISTS\\s+'+constraint+'\\b'),'Cleanup migration must remove redundant '+constraint);
+}
+
 console.log('BMW X1: código, privacidade, login único, mural, comentários, novos cadastros e PWA verificados.');
