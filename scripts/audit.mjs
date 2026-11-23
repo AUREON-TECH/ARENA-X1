@@ -120,7 +120,7 @@ for(const constraint of [
  assert.match(dbMigration,new RegExp('ADD CONSTRAINT\\s+'+constraint+'\\b'),'Migration must define '+constraint);
  assert.match(dbMigration,new RegExp('VALIDATE CONSTRAINT\\s+'+constraint+'\\b'),'Migration must validate '+constraint);
 }
-assert.match(dbMigration,/char_length\\(body\\) BETWEEN 1 AND 50/,'Social text must be capped at 50 characters in PostgreSQL');
-assert.match(dbMigration,/emoji IN \\('🔥','👏','💪','😂','👀','🏆'\\)/,'Database reaction values must match the six UI reaction choices');
+assert.match(dbMigration,/char_length\(body\) BETWEEN 1 AND 50/,'Social text must be capped at 50 characters in PostgreSQL');
+assert.match(dbMigration,/emoji IN \('🔥','👏','💪','😂','👀','🏆'\)/,'Database reaction values must match the six UI reaction choices');
 
 console.log('BMW X1: código, privacidade, login único, mural, comentários, novos cadastros e PWA verificados.');
