@@ -134,4 +134,10 @@ for(const constraint of [
  assert.match(cleanupMigration,new RegExp('DROP CONSTRAINT IF EXISTS\\s+'+constraint+'\\b'),'Cleanup migration must remove redundant '+constraint);
 }
 
+
+const activeRequestMigration=read('supabase/migrations/20261123123844_bmw_x1_prevent_duplicate_active_professional_requests.sql');
+assert.match(activeRequestMigration,/CREATE UNIQUE INDEX IF NOT EXISTS bmw_x1_one_active_account_per_professional/,'Active professional request uniqueness migration must be versioned in the repository');
+assert.match(activeRequestMigration,/ON public\\.bmw_x1_members\\s*\\(professional\\)/,'Active request index must target the professional column');
+assert.match(activeRequestMigration,/WHERE status IN \\('pending', 'approved'\\)/,'Only pending and approved requests should block a new account');
+
 console.log('BMW X1: código, privacidade, login único, mural, comentários, novos cadastros e PWA verificados.');
