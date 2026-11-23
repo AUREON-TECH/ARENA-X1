@@ -805,7 +805,9 @@ try {
             window.__mockState.failNextRefresh = true;
             window.eval('session.expires_at = 0');
           });
+          const logoutNavigation = mockPage.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => null);
           await mockPage.locator('#logoutBtn').click();
+          await logoutNavigation;
           await mockPage.waitForFunction(
             () => !document.body.classList.contains('bmw-authorized') &&
               !sessionStorage.getItem('bmwx1-auth') &&
