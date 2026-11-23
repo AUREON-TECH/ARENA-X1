@@ -105,4 +105,22 @@ const browserSmoke=read('scripts/browser-smoke.mjs');
 assert.match(browserSmoke,/readFileSync\(new URL\('\.\.\/index\.html', import\.meta\.url\)/,'Chromium smoke must derive the expected build from source');
 assert.match(browserSmoke,/expectedVersion/,'Chromium smoke must verify the matching live Service Worker version');
 assert.doesNotMatch(browserSmoke,/arena-x1-v49|arena-x1-stable-v49|sw\.js\?v=49/,'Chromium smoke must not be pinned to a retired PWA version');
+
+const dbMigrationPath='supabase/migrations/20261123003028_bmw_x1_social_validation_constraints.sql';
+const dbMigration=read(dbMigrationPath);
+for(const constraint of [
+ 'bmw_x1_posts_body_1_50_ck',
+ 'bmw_x1_posts_category_ck',
+ 'bmw_x1_comments_body_1_50_ck',
+ 'bmw_x1_result_comments_body_1_50_ck',
+ 'bmw_x1_reactions_emoji_ck',
+ 'bmw_x1_members_status_ck',
+ 'bmw_x1_roster_role_ck'
+]){
+ assert.match(dbMigration,new RegExp('ADD CONSTRAINT\\s+'+constraint+'\\b'),'Migration must define '+constraint);
+ assert.match(dbMigration,new RegExp('VALIDATE CONSTRAINT\\s+'+constraint+'\\b'),'Migration must validate '+constraint);
+}
+assert.match(dbMigration,/char_length\\(body\\) BETWEEN 1 AND 50/,'Social text must be capped at 50 characters in PostgreSQL');
+assert.match(dbMigration,/emoji IN \\('🔥','👏','💪','😂','👀','🏆'\\)/,'Database reaction values must match the six UI reaction choices');
+
 console.log('BMW X1: código, privacidade, login único, mural, comentários, novos cadastros e PWA verificados.');
