@@ -154,6 +154,16 @@
    }
   }finally{checking=false;if(checkAgain){checkAgain=false;void checkSession()}}
  }
+ function friendlyMemberRequestError(error){
+  const raw=String(error?.message||error||'');
+  if(/bmw_x1_one_active_account_per_professional/i.test(raw))
+   return 'Este profissional já possui uma solicitação ou conta ativa. Procure Raphael ou Luis para revisar o vínculo.';
+  if(/bmw_x1_members_pkey/i.test(raw))
+   return 'Esta conta já possui uma solicitação de acesso. Entre para consultar o status ou procure Raphael ou Luis.';
+  if(/duplicate key value violates unique constraint/i.test(raw))
+   return 'Já existe um vínculo de acesso para esta conta ou profissional. Procure Raphael ou Luis.';
+  return raw;
+ }
  function rateLimit(err){
   const text=String(err?.message||err);
   const match=text.match(/(?:after|in)\s+(\d+)\s*seconds?/i);
@@ -198,7 +208,7 @@
       pendingScreen();
       message('Cadastro enviado para aprovação. Verifique seu e-mail e confirme a conta se o Supabase solicitar; depois aguarde Raphael ou Luis liberar seu acesso.');
      }catch(requestError){
-      message('Conta criada, mas o pedido ainda não foi registrado: '+requestError.message+'. Entre com sua senha para concluir a solicitação.');
+      message('Conta criada, mas o pedido ainda não foi registrado: '+friendlyMemberRequestError(requestError)+'. Entre com sua senha para concluir a solicitação.');
       await checkSession();
      }
     }else{
@@ -243,7 +253,7 @@
   try{
    await rest('/rest/v1/bmw_x1_members',{method:'POST',headers:{...baseHeaders(t),Prefer:'return=minimal'},body:JSON.stringify({user_id:user.id,requester_email:String(user.email||'').toLowerCase(),professional,status:'pending'})});
    await checkSession();
-  }catch(e){message('Não foi possível registrar a solicitação: '+e.message)}
+  }catch(e){message('Não foi possível registrar a solicitação: '+friendlyMemberRequestError(e))}
   finally{setBusy(false)}
  };
  el('bmwGateRecheck').onclick=checkSession;
