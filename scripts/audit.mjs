@@ -11,6 +11,14 @@ const registrationVersion=html.match(/sw\.js\?v=(\d+)/);
 assert.ok(cacheVersion&&registrationVersion&&cacheVersion[1]===registrationVersion[1],'Service Worker registration/cache versions must match');
 const buildVersion=html.match(/name="arena-build" content="arena-x1-v(\d+)"/);
 assert.ok(buildVersion&&buildVersion[1]===cacheVersion[1],'Arena build metadata and PWA cache versions must match');
+assert.ok(sw.includes("const SCOPE=new URL(self.registration.scope)"),'Service Worker must bind cache scope to its own app path');
+assert.ok(sw.includes("const SHELL_PATHS=new Set"),'Only the static PWA shell may be cached');
+assert.ok(sw.includes("if(url.origin!==SCOPE.origin||!url.pathname.startsWith(SCOPE.pathname))return;"),'Cross-origin and out-of-scope requests must bypass CacheStorage');
+assert.ok(sw.includes("if(!SHELL_PATHS.has(url.pathname))return;"),'Non-shell same-origin requests must bypass CacheStorage');
+assert.ok(!sw.includes("cache.put(req"),'Never cache the original request URL, which may contain an auth callback query');
+assert.ok(sw.includes("cache.put(INDEX_URL"),'Navigation responses must be cached under the clean canonical app shell URL');
+assert.ok(sw.includes("cache.put(cacheKey"),'Static assets must be cached under clean allowlisted URLs');
+
 
 function idAttributes(source){
  return [...source.matchAll(/\s+id\s*=\s*\\?["']([^"'\\]+)\\?["']/g)].map(match=>match[1]);

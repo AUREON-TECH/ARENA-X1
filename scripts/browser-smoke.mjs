@@ -4,6 +4,11 @@ import { chromium } from 'playwright';
 
 const baseUrl = process.env.ARENA_URL || 'https://aureon-tech.github.io/ARENA-X1/';
 const sourceHtml = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const sourceSw = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
+const shellMatch = sourceSw.match(/const SHELL=\[([\s\S]*?)\];/);
+assert.ok(shellMatch, 'Service Worker must declare its static shell');
+const shellPaths = [...shellMatch[1].matchAll(/'([^']+)'/g)].map(match => match[1]);
+const allowedCacheUrls = new Set(shellPaths.map(path => new URL(path, baseUrl).toString()));
 const expectedBuild = sourceHtml.match(/name="arena-build" content="(arena-x1-v\d+)"/)?.[1];
 assert.ok(expectedBuild, 'Source index.html must declare its Arena build version');
 const expectedVersion = expectedBuild.match(/v(\d+)$/)?.[1];
@@ -191,11 +196,44 @@ try {
     await page.waitForTimeout(5000);
   }
   assert.ok(arenaAssetUpdated, 'Published arena.js must use the single-auth flow');
+  await page.waitForFunction(
+    version => navigator.serviceWorker.controller?.scriptURL.includes('sw.js?v=' + version) &&
+      caches.has('arena-x1-stable-v' + version),
+    expectedVersion,
+    { timeout: 30000 }
+  );
   assert.equal(
     await page.locator('#arenaAuthForm, #arenaSignup, #arenaRecover').count(),
     0,
     'Arena must not expose a second login/signup path after the current Service Worker takes control'
   );
+
+  await page.goto(new URL('?audit_cache_probe=1', baseUrl).toString(), {
+    waitUntil: 'domcontentloaded',
+    timeout: 30000
+  });
+  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller), null, { timeout: 20000 });
+  const cacheAudit = await page.evaluate(async () => {
+    const names = (await caches.keys()).filter(name => name.startsWith('arena-x1-')).sort();
+    const entries = [];
+    for (const name of names) {
+      const cache = await caches.open(name);
+      for (const request of await cache.keys()) entries.push({ name, url: request.url });
+    }
+    return { names, entries };
+  });
+  assert.deepEqual(cacheAudit.names, ['arena-x1-stable-v' + expectedVersion], 'Only the current Arena cache should remain after activation');
+  assert.ok(cacheAudit.entries.length > 0, 'The static Arena shell should be cached');
+  assert.ok(
+    cacheAudit.entries.every(entry => entry.name === 'arena-x1-stable-v' + expectedVersion && allowedCacheUrls.has(entry.url)),
+    'CacheStorage must contain only clean, same-origin allowlisted shell assets: ' + JSON.stringify(cacheAudit.entries)
+  );
+  assert.ok(
+    cacheAudit.entries.every(entry => !new URL(entry.url).search && !entry.url.includes('veznreiamwstlulkpocz.supabase.co')),
+    'Auth callback query parameters and Supabase API responses must never be cached'
+  );
+  console.log('BMW X1 PWA cache isolation PASS: clean static shell only; no auth callback or Supabase cache keys.');
+
   await context.setOffline(true);
   await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
   assert.match(await page.title(), /ARENA X1/i, 'Cached app shell must load offline');
