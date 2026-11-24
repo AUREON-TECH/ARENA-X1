@@ -196,6 +196,12 @@ try {
     await page.waitForTimeout(5000);
   }
   assert.ok(arenaAssetUpdated, 'Published arena.js must use the single-auth flow');
+  await page.waitForFunction(
+    version => navigator.serviceWorker.controller?.scriptURL.includes('sw.js?v=' + version) &&
+      caches.has('arena-x1-stable-v' + version),
+    expectedVersion,
+    { timeout: 30000 }
+  );
   assert.equal(
     await page.locator('#arenaAuthForm, #arenaSignup, #arenaRecover').count(),
     0,
