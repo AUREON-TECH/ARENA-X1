@@ -158,10 +158,10 @@ assert.ok(activeRequestMigration.includes("WHERE status IN ('pending', 'approved
 
 const rosterPrivacyMigrationPath='supabase/migrations/20261125114026_bmw_x1_restrict_roster_to_available_rpc.sql';
 const rosterPrivacyMigration=read(rosterPrivacyMigrationPath);
-assert.match(rosterPrivacyMigration,/REVOKE SELECT ON TABLE public\\.bmw_x1_roster FROM anon, authenticated/,'Direct roster reads must be revoked from client roles');
-assert.match(rosterPrivacyMigration,/DROP POLICY IF EXISTS bmw_roster_public_signup_read/,'Public direct roster policy must be removed');
-assert.match(rosterPrivacyMigration,/DROP POLICY IF EXISTS bmw_roster_read/,'Authenticated direct roster policy must be removed');
+assert.ok(rosterPrivacyMigration.includes('REVOKE SELECT ON TABLE public.bmw_x1_roster FROM anon, authenticated'),'Direct roster reads must be revoked from client roles');
+assert.ok(rosterPrivacyMigration.includes('DROP POLICY IF EXISTS bmw_roster_public_signup_read'),'Public direct roster policy must be removed');
+assert.ok(rosterPrivacyMigration.includes('DROP POLICY IF EXISTS bmw_roster_read'),'Authenticated direct roster policy must be removed');
 for(const file of ['index.html','auth-gate.js','arena.js','result-social.js','add-professional.js','bonus-breakdown.js','rules-cards.js']){
- assert.doesNotMatch(read(file),/\\/rest\\/v1\\/bmw_x1_roster(?:\\?|['"'])/,'Client code must use the least-privilege available-roster RPC, not direct roster reads: '+file);
+ assert.ok(!read(file).includes('/rest/v1/bmw_x1_roster'),'Client code must use the least-privilege available-roster RPC, not direct roster reads: '+file);
 }
 console.log('BMW X1: código, privacidade, login único, mural, comentários, novos cadastros e PWA verificados.');
