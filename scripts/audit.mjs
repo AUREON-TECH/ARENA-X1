@@ -75,6 +75,14 @@ assert.match(arena,/arenaModPosts/);
 assert.match(arena,/data-like/);
 assert.match(arena,/arena-comment-form/);
 const gate=read('auth-gate.js');
+assert.match(gate,/rpc\\/bmw_x1_available_roster/,'Signup and post-confirmation request must use the safe available-roster RPC');
+assert.doesNotMatch(gate,/\\/rest\\/v1\\/bmw_x1_roster\\?select=professional,role/,'Do not load occupied professionals directly into the signup selector');
+const availableRosterMigration=read('supabase/migrations/20261125093000_bmw_x1_available_roster.sql');
+assert.match(availableRosterMigration,/CREATE OR REPLACE FUNCTION public\\.bmw_x1_available_roster/);
+assert.match(availableRosterMigration,/SECURITY DEFINER/);
+assert.match(availableRosterMigration,/SET search_path TO ''/);
+assert.match(availableRosterMigration,/status IN \\('pending', 'approved'\\)/);
+assert.match(availableRosterMigration,/GRANT EXECUTE ON FUNCTION public\\.bmw_x1_available_roster\\(\\) TO anon, authenticated/);
 for(const pattern of [/isManager/,/getMember/,/checkSession/,/bmwGatePending/,/await refresh\(\)/,/window\.bmwLogout/])
  assert.match(gate,pattern);
 const social=read('result-social.js');
