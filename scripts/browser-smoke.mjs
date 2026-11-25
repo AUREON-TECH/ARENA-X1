@@ -60,6 +60,18 @@ try {
   }
   assert.ok(deployed, 'GitHub Pages did not serve ' + expectedBuild + ' at ' + baseUrl);
 
+  const gateResponse = await context.request.get(new URL('auth-gate.js', baseUrl).toString(), { timeout: 30000 });
+  assert.equal(gateResponse.status(), 200, 'Published authentication gate must load');
+  const deployedGateSource = await gateResponse.text();
+  assert.ok(
+    deployedGateSource.includes('/rest/v1/rpc/bmw_x1_available_roster'),
+    'GitHub Pages must serve the updated available-professional selector, not a stale auth-gate.js'
+  );
+  assert.ok(
+    !deployedGateSource.includes('/rest/v1/bmw_x1_roster?select=professional,role'),
+    'Published auth-gate.js must not expose already occupied names in signup'
+  );
+
   const legacyContext = await browser.newContext();
   try {
     const legacyPage = await legacyContext.newPage();
