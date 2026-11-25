@@ -15,7 +15,7 @@
  el('bmwSignupProfessional').required=false;
  el('bmwGateConfirm').required=false;
  async function prepareSignupRoster(){
-  const rows=await rest('/rest/v1/bmw_x1_roster?select=professional,role&order=professional.asc');
+  const rows=await rest('/rest/v1/rpc/bmw_x1_available_roster');
   const select=el('bmwSignupProfessional');select.innerHTML='<option value="">Selecione seu nome</option>';
   for(const p of rows||[]){const option=document.createElement('option');option.value=p.professional;option.textContent=p.professional+' · '+p.role;select.appendChild(option)}
   if(!rows?.length)throw Error('Não foi possível carregar a lista de profissionais.');
@@ -84,7 +84,7 @@
   return Array.isArray(rows)?rows[0]||null:null;
  }
  async function loadRoster(t){
-  const rows=await rest('/rest/v1/bmw_x1_roster?select=professional,role&order=professional.asc',{headers:baseHeaders(t)});
+  const rows=await rest('/rest/v1/rpc/bmw_x1_available_roster',{headers:baseHeaders(t)});
   const select=el('bmwGateProfessional');
   select.innerHTML='';
   for(const p of rows){
