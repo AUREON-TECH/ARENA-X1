@@ -156,4 +156,12 @@ assert.match(activeRequestMigration,/CREATE UNIQUE INDEX IF NOT EXISTS bmw_x1_on
 assert.ok(activeRequestMigration.includes('ON public.bmw_x1_members (professional)'),'Active request index must target the professional column');
 assert.ok(activeRequestMigration.includes("WHERE status IN ('pending', 'approved')"),'Only pending and approved requests should block a new account');
 
+const rosterPrivacyMigrationPath='supabase/migrations/20261125114026_bmw_x1_restrict_roster_to_available_rpc.sql';
+const rosterPrivacyMigration=read(rosterPrivacyMigrationPath);
+assert.match(rosterPrivacyMigration,/REVOKE SELECT ON TABLE public\\.bmw_x1_roster FROM anon, authenticated/,'Direct roster reads must be revoked from client roles');
+assert.match(rosterPrivacyMigration,/DROP POLICY IF EXISTS bmw_roster_public_signup_read/,'Public direct roster policy must be removed');
+assert.match(rosterPrivacyMigration,/DROP POLICY IF EXISTS bmw_roster_read/,'Authenticated direct roster policy must be removed');
+for(const file of ['index.html','auth-gate.js','arena.js','result-social.js','add-professional.js','bonus-breakdown.js','rules-cards.js']){
+ assert.doesNotMatch(read(file),/\\/rest\\/v1\\/bmw_x1_roster(?:\\?|['"'])/,'Client code must use the least-privilege available-roster RPC, not direct roster reads: '+file);
+}
 console.log('BMW X1: código, privacidade, login único, mural, comentários, novos cadastros e PWA verificados.');
