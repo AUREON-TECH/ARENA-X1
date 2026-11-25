@@ -286,7 +286,7 @@ try {
         requester_email: email
       };
       const state = {
-        members: adminMode ? [pending, pendingReject, approved] : currentMember ? [currentMember] : [],
+        members: adminMode || mode === 'signup' ? [pending, pendingReject, approved] : currentMember ? [currentMember] : [],
         posts: [{
           id: 1,
           user_id: adminMode ? approvedId : currentId,
@@ -358,11 +358,16 @@ try {
           return json(adminMode ? [{ email }] : []);
         }
         if (path.endsWith('/rest/v1/bmw_x1_viewers')) return json([]);
-        if (path.endsWith('/rest/v1/bmw_x1_roster')) {
+        if (path.endsWith('/rest/v1/rpc/bmw_x1_available_roster')) {
+          const occupied = new Set(state.members
+            .filter(row => ['pending', 'approved'].includes(row.status))
+            .map(row => row.professional));
           return json([
             { professional: 'Profissional Teste', role: 'CAPTADOR' },
-            { professional: 'Profissional Aprovado', role: 'CONSULTOR' }
-          ]);
+            { professional: 'Profissional Aprovado', role: 'CONSULTOR' },
+            { professional: 'Profissional Pendente', role: 'CLOSER' },
+            { professional: 'Profissional Recusado', role: 'CAPTADOR' }
+          ].filter(row => !occupied.has(row.professional)));
         }
         if (path.endsWith('/rest/v1/bmw_x1_campaign_snapshot')) {
           return json([{
@@ -521,6 +526,11 @@ try {
           null,
           { timeout: 15000 }
         );
+        const availableNames = await mockPage.locator('#bmwSignupProfessional option').allTextContents();
+        assert.ok(availableNames.some(name => name.includes('Profissional Teste')), 'An unclaimed professional must remain selectable');
+        assert.ok(!availableNames.some(name => name.includes('Profissional Aprovado')), 'An approved professional must not appear in signup');
+        assert.ok(!availableNames.some(name => name.includes('Profissional Pendente')), 'A pending professional must not appear in signup');
+        assert.ok(!availableNames.some(name => name.includes('Profissional Recusado')), 'A professional with a pending review must not appear in signup');
         await mockPage.locator('#bmwSignupProfessional').selectOption({ index: 1 });
         await mockPage.locator('#bmwGateEmail').fill('signup-audit@example.invalid');
         await mockPage.locator('#bmwGatePassword').fill('Senha123!');
