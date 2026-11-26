@@ -171,6 +171,6 @@ console.log('BMW X1: código, privacidade, login único, mural, comentários, no
 
 const managerDateMigrationPath='supabase/migrations/20261126084000_bmw_x1_manager_admission_sao_paulo_date.sql';
 const managerDateMigration=read(managerDateMigrationPath);
-assert.match(managerDateMigration,/v_today date := \\(now\\(\\) AT TIME ZONE 'America\\/Sao_Paulo'\\)::date/i,'Manager admission dates must use the same Sao Paulo calendar as the browser.');
-assert.match(managerDateMigration,/p_start > v_today/,'Database must reject dates after the current Sao Paulo date.');
-assert.match(managerDateMigration,/least\\(v_last,v_today,'2026-12-31'::date\\)/i,'Eligibility-day calculations must use the Sao Paulo business date.');
+assert.ok(managerDateMigration.includes("v_today date := (now() AT TIME ZONE 'America/Sao_Paulo')::date;"),'Manager admission dates must use the same Sao Paulo calendar as the browser.');
+assert.ok(managerDateMigration.includes('p_start > v_today'),'Database must reject dates after the current Sao Paulo date.');
+assert.ok(managerDateMigration.includes("least(v_last,v_today,'2026-12-31'::date)"),'Eligibility-day calculations must use the Sao Paulo business date.');
