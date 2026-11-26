@@ -216,7 +216,7 @@
       clearClient();show('bmwGateAuth');
       message('Conta criada, mas o pedido foi bloqueado: '+reason+' A sessão foi encerrada. Não tente novamente com o mesmo e-mail até a gestão regularizar a configuração.');
      }
-    }    }else{
+    }else{
      message('Conta criada. A confirmação do e-mail é obrigatória para solicitar aprovação: confira sua caixa de entrada e o spam, abra o link enviado e depois volte ao app para entrar e solicitar acesso. Se não receber a mensagem, peça a Raphael ou Luis para verificar a configuração de confirmação/SMTP. Se este e-mail já estiver cadastrado, volte ao login e entre com sua senha.');
     }
    }catch(error){rateLimit(error)}

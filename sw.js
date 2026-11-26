@@ -1,4 +1,4 @@
-const CACHE='arena-x1-stable-v60';
+const CACHE='arena-x1-stable-v61';
 const SHELL=['./index.html','./manifest.webmanifest','./bmw-icon-192.png','./bmw-icon-512.png','./icon.svg','./bmw-x1-hero.webp','./arena_x1_hotel_bmw_banner.webp','./bonus-breakdown.js','./arena.js','./rules-cards.js','./auth-gate.js','./result-social.js','./add-professional.js'];
 const SCOPE=new URL(self.registration.scope);
 const INDEX_URL=new URL('./index.html',SCOPE).href;
