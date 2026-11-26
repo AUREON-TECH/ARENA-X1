@@ -208,14 +208,14 @@
       await submitPendingRequest(created.access_token,identity,signupProfessional);
       member={professional:signupProfessional,status:'pending'};
       pendingScreen();
-      message('Cadastro enviado para aprovação. Verifique seu e-mail e confirme a conta se o Supabase solicitar; depois aguarde Raphael ou Luis liberar seu acesso.');
+      message('E-mail confirmado e solicitação enviada para aprovação. Aguarde Raphael ou Luis liberar seu acesso.');
      }catch(requestError){
       const reason=friendlyMemberRequestError(requestError);
       await checkSession();
       message('Conta criada, mas o pedido não foi registrado: '+reason);
      }
     }else{
-     message('Cadastro recebido. Caso o Supabase exija confirmação, confira sua caixa de entrada e o spam, abra o link de confirmação e depois volte ao app para entrar e solicitar aprovação. Se este e-mail já estiver cadastrado, volte ao login e entre com sua senha.');
+     message('Conta criada. A confirmação do e-mail é obrigatória para solicitar aprovação: confira sua caixa de entrada e o spam, abra o link enviado e depois volte ao app para entrar e solicitar acesso. Se não receber a mensagem, peça a Raphael ou Luis para verificar a configuração de confirmação/SMTP. Se este e-mail já estiver cadastrado, volte ao login e entre com sua senha.');
     }
    }catch(error){rateLimit(error)}
    finally{setBusy(false);if(signupMode&&Date.now()<signupBlockUntil)el('bmwGateEnter').disabled=true}
