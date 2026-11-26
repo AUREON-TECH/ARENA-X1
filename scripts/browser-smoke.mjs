@@ -831,6 +831,10 @@ try {
           { timeout: 10000 }
         );
         await mockPage.evaluate(() => window.nav('management'));
+        await mockPage.locator('#newProfessionalManager summary').click();
+        await mockPage.locator('#newProfessionalManager details').evaluate(node => {
+          if (!node.open) throw new Error('Manager admission form details did not open');
+        });
         const admissionDate = mockPage.locator('#bmwNewPersonDate');
         await admissionDate.waitFor({ state: 'visible', timeout: 5000 });
         const dateBounds = await admissionDate.evaluate(input => {
