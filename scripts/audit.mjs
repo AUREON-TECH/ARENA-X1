@@ -169,7 +169,7 @@ for(const file of ['index.html','auth-gate.js','arena.js','result-social.js','ad
 console.log('BMW X1: código, privacidade, login único, mural, comentários, novos cadastros e PWA verificados.');
 
 
-const managerDateMigrationPath='supabase/migrations/20261126084000_bmw_x1_manager_admission_sao_paulo_date.sql';
+const managerDateMigrationPath='supabase/migrations/20261126084012_bmw_x1_manager_admission_sao_paulo_date.sql';
 const managerDateMigration=read(managerDateMigrationPath);
 assert.ok(managerDateMigration.includes("v_today date := (now() AT TIME ZONE 'America/Sao_Paulo')::date;"),'Manager admission dates must use the same Sao Paulo calendar as the browser.');
 assert.ok(managerDateMigration.includes('p_start > v_today'),'Database must reject dates after the current Sao Paulo date.');
