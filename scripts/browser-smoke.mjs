@@ -830,6 +830,31 @@ try {
           mode,
           { timeout: 10000 }
         );
+        await mockPage.evaluate(() => window.nav('management'));
+        const admissionDate = mockPage.locator('#bmwNewPersonDate');
+        await admissionDate.waitFor({ state: 'visible', timeout: 5000 });
+        const dateBounds = await admissionDate.evaluate(input => {
+          const format = date => new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+          const now = new Date();
+          const tomorrow = new Date(now);
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          return { max: input.max, today: format(now), tomorrow: format(tomorrow) };
+        });
+        assert.equal(dateBounds.max, dateBounds.today, 'Manager admission date maximum must equal the local current date');
+        await mockPage.locator('#bmwNewPersonName').fill('AUDITORIA FUTURA');
+        await admissionDate.fill(dateBounds.tomorrow);
+        assert.equal(await admissionDate.evaluate(input => input.validity.rangeOverflow), true, 'A future admission date must be rejected by browser validation');
+        const addProfessionalCallsBefore = await mockPage.evaluate(() =>
+          window.__mockState.writes.filter(item => item.path.endsWith('/rpc/bmw_x1_add_professional')).length
+        );
+        await mockPage.locator('#bmwNewPersonSubmit').click();
+        const addProfessionalCallsAfter = await mockPage.evaluate(() =>
+          window.__mockState.writes.filter(item => item.path.endsWith('/rpc/bmw_x1_add_professional')).length
+        );
+        assert.equal(addProfessionalCallsAfter, addProfessionalCallsBefore, 'A future admission date must not call the production RPC');
+        console.log('BMW X1 manager admission-date validation PASS: future dates blocked before RPC.');
+        await mockPage.locator('#arenaTab').click();
+
         if (mode === 'admin-luis') {
           await mockPage.evaluate(() => {
             window.eval('admin = false');

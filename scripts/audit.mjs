@@ -108,6 +108,8 @@ assert.match(social,/bmw_x1_result_likes/);
 const add=read('add-professional.js');
 assert.match(add,/rpc\/bmw_x1_add_professional/);
 assert.match(add,/if\(!admin\)return/);
+assert.match(add,/dateField\.max=todayLocal\(\)/,'Manager admission date must not allow future dates');
+assert.match(add,/start>today/,'Manager admission date must reject future dates before calling the RPC');
 const rules=read('rules-cards.js');assert.match(rules,/rules-cards/);
 for(const path of ['index.html','sw.js','manifest.webmanifest'])assert.ok(fs.existsSync(path),path);
 for(const icon of manifest.icons)assert.ok(fs.existsSync(icon.src.replace(/^\.\//,'')),icon.src);
