@@ -599,8 +599,18 @@ try {
           1,
           'The blocked approval request should be attempted only against the mocked backend'
         );
+        assert.equal(
+          autoConfirmState.writes.filter(x => x.path.endsWith('/auth/v1/logout') && x.method === 'POST').length,
+          1,
+          'The temporary auto-confirmed session must be revoked after RLS blocks the request'
+        );
+        assert.equal(
+          await mockPage.evaluate(() => localStorage.getItem('bmw-x1-arena-auth')),
+          null,
+          'An auto-confirmed account without email provenance must not retain a client session'
+        );
         assert.deepEqual(mockErrors, [], 'Auto-confirmed signup mock browser errors: ' + mockErrors.join('; '));
-        console.log('BMW X1 mocked Chromium flow PASS: auto-confirmed signup without email-send provenance is denied by RLS; no production API writes.');
+        console.log('BMW X1 mocked Chromium flow PASS: auto-confirmed signup without email-send provenance is denied by RLS; temporary session revoked and not persisted; no production API writes.');
         return;
       }
 

@@ -163,7 +163,7 @@
   if(/duplicate key value violates unique constraint/i.test(raw))
    return 'Já existe um vínculo de acesso para esta conta ou profissional. Procure Raphael ou Luis.';
   if(/row-level security|42501|permission denied/i.test(raw))
-   return 'Não foi possível comprovar o envio e a confirmação do e-mail. O pedido foi bloqueado por segurança. Peça à gestão para verificar Confirm email/SMTP e reenviar a confirmação.';
+   return 'Não foi possível comprovar o envio/convite da confirmação por e-mail. O pedido foi bloqueado por segurança. Peça à gestão para corrigir Confirm email/SMTP e regularizar esta conta antes de tentar novamente; não crie outra conta com o mesmo e-mail.';
   return raw;
  }
  function rateLimit(err){
@@ -198,23 +198,25 @@
     el('bmwGatePassword').value='';el('bmwGateConfirm').value='';
     signupMode=false;setBusy(false);setSignupMode(false);
     if(created?.access_token&&created?.refresh_token){
-     storeAuth(created,false);
      try{
       const identity=await rest('/auth/v1/user',{headers:baseHeaders(created.access_token)});
       if(!identity?.id)throw Error('Identidade não confirmada.');
       if(String(identity.email||'').toLowerCase()==='alexandredamasn@gmail.com'){
+       storeAuth(created,false);
        await checkSession();message('Conta de Alexandre Damas criada. Acesso de visualização autorizado.');return;
       }
       await submitPendingRequest(created.access_token,identity,signupProfessional);
+      storeAuth(created,false);
       member={professional:signupProfessional,status:'pending'};
       pendingScreen();
       message('E-mail confirmado e solicitação enviada para aprovação. Aguarde Raphael ou Luis liberar seu acesso.');
      }catch(requestError){
       const reason=friendlyMemberRequestError(requestError);
-      await checkSession();
-      message('Conta criada, mas o pedido não foi registrado: '+reason);
+      try{await rest('/auth/v1/logout',{method:'POST',headers:baseHeaders(created.access_token)})}catch{}
+      clearClient();show('bmwGateAuth');
+      message('Conta criada, mas o pedido foi bloqueado: '+reason+' A sessão foi encerrada. Não tente novamente com o mesmo e-mail até a gestão regularizar a configuração.');
      }
-    }else{
+    }    }else{
      message('Conta criada. A confirmação do e-mail é obrigatória para solicitar aprovação: confira sua caixa de entrada e o spam, abra o link enviado e depois volte ao app para entrar e solicitar acesso. Se não receber a mensagem, peça a Raphael ou Luis para verificar a configuração de confirmação/SMTP. Se este e-mail já estiver cadastrado, volte ao login e entre com sua senha.');
     }
    }catch(error){rateLimit(error)}

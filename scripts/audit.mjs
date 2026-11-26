@@ -122,7 +122,7 @@ assert.ok(fs.existsSync('bmw-x1-hero.webp'));
 const browserSmoke=read('scripts/browser-smoke.mjs');
 assert.match(browserSmoke,/readFileSync\(new URL\('\.\.\/index\.html', import\.meta\.url\)/,'Chromium smoke must derive the expected build from source');
 assert.match(browserSmoke,/expectedVersion/,'Chromium smoke must verify the matching live Service Worker version');
-assert.match(browserSmoke,/signup-auto-confirm/,'Chromium smoke must cover Supabase auto-confirm signup being blocked by RLS.');
+assert.match(browserSmoke,/signup-auto-confirm/,'Chromium smoke must cover Supabase auto-confirm signup being blocked and cleaned up.');
 assert.doesNotMatch(browserSmoke,/arena-x1-v49|arena-x1-stable-v49|sw\.js\?v=49/,'Chromium smoke must not be pinned to a retired PWA version');
 
 const dbMigrationPath='supabase/migrations/20261123003028_bmw_x1_social_validation_constraints.sql';
@@ -158,7 +158,9 @@ const emailConfirmationMigration=read('supabase/migrations/20261126144439_bmw_x1
 assert.match(emailConfirmationMigration,/CREATE OR REPLACE FUNCTION bmw_auth\.is_email_confirmation_provenance_valid/,'Member requests must verify email-confirmation provenance.');
 assert.match(emailConfirmationMigration,/confirmation_sent_at IS NOT NULL OR u\.invited_at IS NOT NULL/,'New member requests must have an email confirmation or invitation sent.');
 assert.match(emailConfirmationMigration,/AND bmw_auth\.is_email_confirmation_provenance_valid\(\)/,'The pending-member RLS policy must enforce email-confirmation provenance.');
-assert.match(gate,/Não foi possível comprovar o envio e a confirmação do e-mail/,'The app must explain when email confirmation provenance blocks a request.');
+assert.match(gate,/Não foi possível comprovar o envio\/convite da confirmação por e-mail/,'The app must explain when email confirmation provenance blocks a request.');
+assert.match(gate,/await submitPendingRequest\(created\.access_token,identity,signupProfessional\);\s*storeAuth\(created,false\);/,'A professional session must not be persisted until the approval request passes RLS.');
+assert.match(gate,/auth\/v1\/logout/,'A temporary auto-confirmed session must be revoked when email provenance is missing.');
 const activeRequestMigration=read('supabase/migrations/20261123123844_bmw_x1_prevent_duplicate_active_professional_requests.sql');
 assert.match(activeRequestMigration,/CREATE UNIQUE INDEX IF NOT EXISTS bmw_x1_one_active_account_per_professional/,'Active professional request uniqueness migration must be versioned in the repository');
 assert.ok(activeRequestMigration.includes('ON public.bmw_x1_members (professional)'),'Active request index must target the professional column');
