@@ -267,7 +267,8 @@ try {
       const approvedId = '33333333-3333-4333-8333-333333333333';
       const pendingId = '22222222-2222-4222-8222-222222222222';
       const email = mode === 'admin-luis' ? 'luisaneto@gmail.com' :
-        mode === 'admin-raphael' ? 'raphaelbueno@gmail.com' : 'profissional@example.invalid';
+        mode === 'admin-raphael' ? 'raphaelbueno@gmail.com' :
+        mode === 'signup-auto-confirm' ? 'auto-confirmed@example.invalid' : 'profissional@example.invalid';
       const user = { id: currentId, email };
       const approved = {
         user_id: approvedId,
@@ -290,7 +291,7 @@ try {
         requested_at: '2026-11-19T18:30:00Z',
         requester_email: 'recusado@example.invalid'
       };
-      const currentMember = mode === 'request' ? null : {
+      const currentMember = mode === 'request' || mode === 'signup-auto-confirm' ? null : {
         user_id: currentId,
         professional: 'Profissional Teste',
         status: mode === 'pending' ? 'pending' : mode === 'rejected' ? 'rejected' : 'approved',
@@ -334,7 +335,7 @@ try {
         expires_at: mode === 'member-expiring' ? Math.floor(Date.now() / 1000) + 20 : 4102444800
       };
       window.__mockState = state;
-      if (mode !== 'signup' && localStorage.getItem('__audit_logout_no_restore') !== '1') localStorage.setItem('bmw-x1-arena-auth', JSON.stringify(session));
+      if (!['signup', 'signup-auto-confirm'].includes(mode) && localStorage.getItem('__audit_logout_no_restore') !== '1') localStorage.setItem('bmw-x1-arena-auth', JSON.stringify(session));
       const json = (data, status = 200) => new Response(JSON.stringify(data), {
         status,
         headers: { 'Content-Type': 'application/json' }
@@ -355,6 +356,7 @@ try {
         if (path.endsWith('/auth/v1/signup') && method === 'POST') {
           state.signupCalls++;
           state.signupRedirectTo = url.searchParams.get('redirect_to');
+          if (mode === 'signup-auto-confirm') return json({ ...session, user, expires_in: 3600 });
           return json({ user: { id: currentId, email } });
         }
         if (path.endsWith('/auth/v1/token')) {
@@ -413,6 +415,9 @@ try {
             return empty();
           }
           if (method === 'POST') {
+            if (mode === 'signup-auto-confirm') {
+              return json({ code: '42501', message: 'new row violates row-level security policy for table bmw_x1_members' }, 403);
+            }
             state.members.push(body);
             return empty(201);
           }
@@ -559,6 +564,43 @@ try {
         assert.equal(signupState.writes.filter(x => x.path.endsWith('/bmw_x1_members') && x.method === 'POST').length, 0, 'No approval request is sent before email confirmation');
         assert.deepEqual(mockErrors, [], 'Signup mock browser errors: ' + mockErrors.join('; '));
         console.log('BMW X1 mocked Chromium flow PASS: signup confirmation-required state — no production API writes.');
+        return;
+      }
+
+      if (mode === 'signup-auto-confirm') {
+        await mockPage.locator('#bmwGateSignup').click();
+        await mockPage.waitForFunction(
+          () => getComputedStyle(document.getElementById('bmwGateConfirmWrap')).display !== 'none',
+          null,
+          { timeout: 5000 }
+        );
+        await mockPage.waitForFunction(
+          () => (document.querySelectorAll('#bmwSignupProfessional option').length || 0) > 1,
+          null,
+          { timeout: 15000 }
+        );
+        await mockPage.locator('#bmwSignupProfessional').selectOption({ index: 1 });
+        await mockPage.locator('#bmwGateEmail').fill('auto-confirmed@example.invalid');
+        await mockPage.locator('#bmwGatePassword').fill('Senha123!');
+        await mockPage.locator('#bmwGateConfirm').fill('Senha123!');
+        await mockPage.locator('#bmwGateEnter').click();
+        await mockPage.waitForFunction(
+          () => /Não foi possível comprovar o envio e a confirmação do e-mail/i.test(
+            document.getElementById('bmwGateMessage')?.textContent || ''
+          ),
+          null,
+          { timeout: 10000 }
+        );
+        const autoConfirmState = await mockPage.evaluate(() => window.__mockState);
+        assert.equal(autoConfirmState.signupCalls, 1, 'Auto-confirmed signup must reach the mocked signup endpoint');
+        assert.equal(autoConfirmState.members.length, 0, 'Auto-confirmed signup must not create an approval request when RLS rejects missing email provenance');
+        assert.equal(
+          autoConfirmState.writes.filter(x => x.path.endsWith('/bmw_x1_members') && x.method === 'POST').length,
+          1,
+          'The blocked approval request should be attempted only against the mocked backend'
+        );
+        assert.deepEqual(mockErrors, [], 'Auto-confirmed signup mock browser errors: ' + mockErrors.join('; '));
+        console.log('BMW X1 mocked Chromium flow PASS: auto-confirmed signup without email-send provenance is denied by RLS; no production API writes.');
         return;
       }
 
@@ -950,6 +992,7 @@ try {
   };
 
   await runMockFlow('signup');
+  await runMockFlow('signup-auto-confirm');
   await runMockFlow('request');
   await runMockFlow('pending');
   await runMockFlow('rejected');

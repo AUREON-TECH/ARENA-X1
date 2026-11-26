@@ -162,6 +162,8 @@
    return 'Esta conta já possui uma solicitação de acesso. Entre para consultar o status ou procure Raphael ou Luis.';
   if(/duplicate key value violates unique constraint/i.test(raw))
    return 'Já existe um vínculo de acesso para esta conta ou profissional. Procure Raphael ou Luis.';
+  if(/row-level security|42501|permission denied/i.test(raw))
+   return 'Não foi possível comprovar o envio e a confirmação do e-mail. O pedido foi bloqueado por segurança. Peça à gestão para verificar Confirm email/SMTP e reenviar a confirmação.';
   return raw;
  }
  function rateLimit(err){
@@ -208,8 +210,9 @@
       pendingScreen();
       message('Cadastro enviado para aprovação. Verifique seu e-mail e confirme a conta se o Supabase solicitar; depois aguarde Raphael ou Luis liberar seu acesso.');
      }catch(requestError){
-      message('Conta criada, mas o pedido ainda não foi registrado: '+friendlyMemberRequestError(requestError)+'. Entre com sua senha para concluir a solicitação.');
+      const reason=friendlyMemberRequestError(requestError);
       await checkSession();
+      message('Conta criada, mas o pedido não foi registrado: '+reason);
      }
     }else{
      message('Cadastro recebido. Caso o Supabase exija confirmação, confira sua caixa de entrada e o spam, abra o link de confirmação e depois volte ao app para entrar e solicitar aprovação. Se este e-mail já estiver cadastrado, volte ao login e entre com sua senha.');
