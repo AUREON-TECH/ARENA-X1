@@ -585,7 +585,7 @@ try {
         await mockPage.locator('#bmwGateConfirm').fill('Senha123!');
         await mockPage.locator('#bmwGateEnter').click();
         await mockPage.waitForFunction(
-          () => /Não foi possível comprovar o envio e a confirmação do e-mail/i.test(
+          () => /Não foi possível comprovar o envio\/convite da confirmação por e-mail/i.test(
             document.getElementById('bmwGateMessage')?.textContent || ''
           ),
           null,
