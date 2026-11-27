@@ -129,6 +129,8 @@ assert.ok(fs.existsSync('bmw-x1-hero.webp'));
 const browserSmoke=read('scripts/browser-smoke.mjs');
 assert.match(browserSmoke,/__auditResendCalls/,'Chromium smoke must test the confirmation-resend UI with a mocked Auth response.');
 assert.match(browserSmoke,/confirmation-resend UI PASS/,'Chromium smoke must report the resend test explicitly.');
+assert.match(browserSmoke,/__auditIntervals/,'Chromium smoke must exercise the results social refresh timer.');
+assert.match(browserSmoke,/Authenticated Mural DOM must not contain duplicate IDs/,'Chromium smoke must check dynamic Mural IDs after login.');
 assert.match(browserSmoke,/readFileSync\(new URL\('\.\.\/index\.html', import\.meta\.url\)/,'Chromium smoke must derive the expected build from source');
 assert.match(browserSmoke,/expectedVersion/,'Chromium smoke must verify the matching live Service Worker version');
 assert.match(browserSmoke,/signup-auto-confirm/,'Chromium smoke must cover Supabase auto-confirm signup being blocked and cleaned up.');
