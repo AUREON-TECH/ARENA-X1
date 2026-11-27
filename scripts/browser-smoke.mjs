@@ -859,7 +859,7 @@ try {
         assert.equal(autoRefreshState.visibility, 'visible', 'Results social timer test requires a visible browser tab');
         assert.equal(autoRefreshState.accessGranted, true, 'Results social timer test requires an authorized session');
         assert.ok(autoRefreshState.resultSocialVisible, 'Results social container must exist before timer refresh');
-        assert.ok(!autoRefreshState.professionalViewClass.split(/\\s+/).includes('hidden'), 'Professional results view must be visible');
+        assert.ok(!autoRefreshState.professionalViewClass.split(/\s+/).includes('hidden'), 'Professional results view must be visible');
         assert.ok(autoRefreshState.person, 'A professional result must be selected');
         assert.equal(autoRefreshState.activeInsideCommentForm, false, 'Auto-refresh must not run while the comment form is focused');
         await mockPage.evaluate(() => (window.__auditIntervals || []).forEach(callback => callback()));
