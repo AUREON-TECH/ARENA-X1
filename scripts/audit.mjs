@@ -75,6 +75,10 @@ assert.match(arena,/arenaModPosts/);
 assert.match(arena,/data-like/);
 assert.match(arena,/arena-comment-form/);
 const gate=read('auth-gate.js');
+assert.match(gate,/bmwGateResend/,'The public gate must expose an email-confirmation resend control.');
+assert.match(gate,/auth\/v1\/resend/,'The resend control must use Supabase Auth resend.');
+assert.match(gate,/resendBlockUntil=Date\.now\(\)\+60000/,'The public resend control must enforce a 60-second cooldown.');
+assert.match(gate,/Se a conta existir e ainda não estiver confirmada/,'Resend feedback must not reveal account existence.');
 assert.match(gate,/rpc\/bmw_x1_available_roster/,'Signup and post-confirmation request must use the safe available-roster RPC');
 assert.doesNotMatch(gate,/\/rest\/v1\/bmw_x1_roster\?select=professional,role/,'Do not load occupied professionals directly into the signup selector');
 const availableRosterMigration=read('supabase/migrations/20261125093629_bmw_x1_available_roster.sql');
@@ -86,6 +90,8 @@ assert.match(availableRosterMigration,/GRANT EXECUTE ON FUNCTION public\.bmw_x1_
 for(const pattern of [/isManager/,/getMember/,/checkSession/,/bmwGatePending/,/await refresh\(\)/,/window\.bmwLogout/])
  assert.match(gate,pattern);
 const social=read('result-social.js');
+assert.match(social,/setInterval\(\(\)=>\{if\(canAutoRefresh\(\)\)loadSocial\(\)\},30000\)/,'Result social must refresh every 30 seconds only while visible and authorized.');
+assert.match(social,/document\.addEventListener\('visibilitychange'/,'Result social must refresh when the app becomes visible again.');
 for(const pattern of [/bmw_x1_result_comments/,/bmw_x1_result_likes/,/data-max-codepoints="50"/,/Array\.from\(msg\)\.length>50/,/chars\.slice\(0,50\)\.join\(''\)/,/currentMember\?\.write|currentMember\.write/])
  assert.match(social,pattern);
 assert.match(social,/if\(!admin&&!auth\.write\)/,'Read-only viewers must not query private social rows');
@@ -120,6 +126,8 @@ assert.equal(shellPaths.length,new Set(shellPaths).size,'Arquivos duplicados no 
 for(const path of shellPaths)assert.ok(fs.existsSync(path.replace(/^\.\//,'')),'Arquivo ausente no pré-cache: '+path);
 assert.ok(fs.existsSync('bmw-x1-hero.webp'));
 const browserSmoke=read('scripts/browser-smoke.mjs');
+assert.match(browserSmoke,/__auditResendCalls/,'Chromium smoke must test the confirmation-resend UI with a mocked Auth response.');
+assert.match(browserSmoke,/confirmation-resend UI PASS/,'Chromium smoke must report the resend test explicitly.');
 assert.match(browserSmoke,/readFileSync\(new URL\('\.\.\/index\.html', import\.meta\.url\)/,'Chromium smoke must derive the expected build from source');
 assert.match(browserSmoke,/expectedVersion/,'Chromium smoke must verify the matching live Service Worker version');
 assert.match(browserSmoke,/signup-auto-confirm/,'Chromium smoke must cover Supabase auto-confirm signup being blocked and cleaned up.');
