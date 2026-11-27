@@ -759,11 +759,11 @@ try {
           );
         }
         console.log('Authenticated Mural responsive: PASS at 390px and 768px.');
-        const authenticatedDuplicateIds = await mockPage.locator('[id]').evaluateAll(nodes => {
+        const muralDuplicateIds = await mockPage.locator('[id]').evaluateAll(nodes => {
           const ids = nodes.map(node => node.id).filter(Boolean);
           return [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
         });
-        assert.deepEqual(authenticatedDuplicateIds, [], 'Authenticated Mural DOM must not contain duplicate IDs');
+        assert.deepEqual(muralDuplicateIds, [], 'Authenticated Mural DOM must not contain duplicate IDs');
         await mockPage.locator('[data-arena-view="posts"]').click();
         await mockPage.locator('#arenaPostCategory').selectOption('desafio');
         const emojiField = mockPage.locator('#arenaPostText');
