@@ -254,7 +254,7 @@
   if(busy)return;
   const email=el('bmwGateEmail').value.trim().toLowerCase();
   if(!email){message('Informe seu e-mail primeiro.');return}
-  if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){message('Digite um e-mail válido para solicitar a confirmação.');return}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){message('Digite um e-mail válido para solicitar a confirmação.');return}
   const remaining=Math.max(0,Math.ceil((resendBlockUntil-Date.now())/1000));
   if(remaining){message('Aguarde '+remaining+' segundos antes de solicitar outro link.');return}
   setBusy(true);message('Solicitando um novo link de confirmação...');
