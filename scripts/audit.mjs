@@ -78,6 +78,7 @@ const gate=read('auth-gate.js');
 assert.match(gate,/bmwGateResend/,'The public gate must expose an email-confirmation resend control.');
 assert.match(gate,/auth\/v1\/resend/,'The resend control must use Supabase Auth resend.');
 assert.match(gate,/resendBlockUntil=Date\.now\(\)\+60000/,'The public resend control must enforce a 60-second cooldown.');
+assert.ok(gate.includes("if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email))"),'Confirmation resend must validate a normal email address using single regex escapes.');
 assert.match(gate,/Se a conta existir e ainda não estiver confirmada/,'Resend feedback must not reveal account existence.');
 assert.match(gate,/rpc\/bmw_x1_available_roster/,'Signup and post-confirmation request must use the safe available-roster RPC');
 assert.doesNotMatch(gate,/\/rest\/v1\/bmw_x1_roster\?select=professional,role/,'Do not load occupied professionals directly into the signup selector');
