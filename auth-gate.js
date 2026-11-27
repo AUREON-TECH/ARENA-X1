@@ -3,10 +3,10 @@
  const el=id=>document.getElementById(id);
  const message=t=>{const value=t||'';el('bmwGateMessage').textContent=value;el('bmwGateMessage').style.display=value?'block':'none';const top=el('bmwGateTopMessage');if(top){top.textContent=value;top.style.display=value?'block':'none'}};
  const parts=['bmwGateAuth','bmwGateRequest','bmwGatePending'];
- let gateSession=null,user=null,member=null,busy=false,checking=false,revalidating=false,signupBlockUntil=0,signupTicker=null,signupMode=false,signupProfessional='',checkAgain=false;
+ let gateSession=null,user=null,member=null,busy=false,checking=false,revalidating=false,signupBlockUntil=0,signupTicker=null,resendBlockUntil=0,resendTicker=null,signupMode=false,signupProfessional='',checkAgain=false;
  const baseHeaders=t=>({Authorization:'Bearer '+t});
  const show=(id)=>{for(const x of parts)el(x).style.display=x===id?'block':'none'};
- const setBusy=value=>{busy=value;for(const id of ['bmwGateEnter','bmwGateSignup','bmwGateReset','bmwGateRequestButton','bmwGateRecheck'])el(id).disabled=value};
+ const setBusy=value=>{busy=value;for(const id of ['bmwGateEnter','bmwGateSignup','bmwGateReset','bmwGateResend','bmwGateRequestButton','bmwGateRecheck'])el(id).disabled=value};
  const signupField=document.createElement('div');
  signupField.id='bmwSignupProfessionalWrap';signupField.style.display='none';
  signupField.innerHTML='<label for="bmwSignupProfessional">Seu nome na equipe</label><select id="bmwSignupProfessional" style="width:100%;padding:12px;border-radius:9px" required><option value="">Carregando participantes...</option></select>';
@@ -36,6 +36,7 @@
   el('bmwGateEnter').textContent=active?'Criar minha conta':'Entrar';
   el('bmwGateSignup').textContent=active?'Voltar ao login':'Criar conta';
   el('bmwGateReset').style.display=active?'none':'inline-block';
+  el('bmwGateResend').style.display=active?'none':'inline-block';
   message(active?'Cadastro novo: informe seu e-mail, crie uma senha e confirme-a. Depois clique em Criar minha conta.':'Acesse com seu e-mail e senha já cadastrados.');
  }
  function clearClient(){
@@ -248,6 +249,33 @@
   if(!email){message('Informe seu e-mail primeiro.');return}
   try{await rest('/auth/v1/recover',{method:'POST',body:JSON.stringify({email})});message('Se a conta existir, você receberá instruções de recuperação por e-mail.')}
   catch(e){message('Recuperação: '+e.message)}
+ };
+ el('bmwGateResend').onclick=async()=>{
+  if(busy)return;
+  const email=el('bmwGateEmail').value.trim().toLowerCase();
+  if(!email){message('Informe seu e-mail primeiro.');return}
+  if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){message('Digite um e-mail válido para solicitar a confirmação.');return}
+  const remaining=Math.max(0,Math.ceil((resendBlockUntil-Date.now())/1000));
+  if(remaining){message('Aguarde '+remaining+' segundos antes de solicitar outro link.');return}
+  setBusy(true);message('Solicitando um novo link de confirmação...');
+  try{
+   const redirectTo=new URL('./',window.location.href).toString();
+   await rest('/auth/v1/resend',{method:'POST',body:JSON.stringify({type:'signup',email,options:{emailRedirectTo:redirectTo}})});
+   resendBlockUntil=Date.now()+60000;
+   if(resendTicker)clearInterval(resendTicker);
+   el('bmwGateResend').textContent='Reenviar em 60s';
+   resendTicker=setInterval(()=>{
+    const n=Math.max(0,Math.ceil((resendBlockUntil-Date.now())/1000));
+    el('bmwGateResend').textContent=n?'Reenviar em '+n+'s':'Reenviar confirmação';
+    if(!n){clearInterval(resendTicker);resendTicker=null;el('bmwGateResend').disabled=false}
+   },1000);
+   message('Se a conta existir e ainda não estiver confirmada, um novo link foi solicitado. Confira sua caixa de entrada e o spam.');
+  }catch(error){
+   message('Não foi possível solicitar um novo link agora. Aguarde um pouco e tente novamente.');
+  }finally{
+   setBusy(false);
+   if(Date.now()<resendBlockUntil)el('bmwGateResend').disabled=true;
+  }
  };
  el('bmwGateRequestButton').onclick=async()=>{
   if(busy)return;

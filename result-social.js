@@ -4,7 +4,7 @@
  style.textContent='.results-social{margin:15px 0;background:#132944;border:1px solid #385774;border-radius:14px;padding:15px}.results-social h3{margin:0 0 6px;color:#ecc777}.results-social p{font-size:12px;color:#b5c9df}.results-social-tools{display:flex;align-items:center;gap:8px;margin:10px 0;flex-wrap:wrap}.results-social .social-list{display:grid;gap:7px}.results-social .social-entry{background:#0c1e33;border:1px solid #30465e;border-radius:9px;padding:9px;font-size:12px}.results-social .social-entry strong{color:#e1c584}.results-social .social-entry small{color:#aebfd5}.results-social form{display:flex;gap:8px;flex-wrap:wrap}.results-social input{flex:1;min-width:180px;background:#0b1b2c;border:1px solid #4a6580;border-radius:9px;color:#fff;padding:10px}.results-social .social-message{font-size:12px;color:#f3c679}.results-social .btn{font-size:12px;padding:8px 10px}@media(max-width:650px){.results-social{padding:10px}.results-social form{flex-direction:column}.results-social input{min-width:0}}';
  document.head.appendChild(style);
  const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- let current=0,loaded='',comments=[],likes=[],currentUser=null,currentMember=null,requesting=false;
+ let current=0,loaded='',comments=[],likes=[],currentUser=null,currentMember=null,requesting=false,loading=false,refreshAgain=false;
  const number=x=>encodeURIComponent(x);
  const approved=async()=>{
   const jwt=await window.bmwAppToken?.();
@@ -20,8 +20,10 @@
  const status=x=>{const e=document.getElementById('resultSocialStatus');if(e)e.textContent=x||''};
  const niceDate=value=>new Date(value).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
  async function loadSocial(){
-  const p=who(),seq=++current;
+  const p=who();
   if(!p||!accessGranted||!box())return;
+  if(loading){refreshAgain=true;return}
+  const seq=++current;loading=true;
   try{
    const auth=await approved();
    if(!auth||seq!==current)return;
@@ -39,7 +41,12 @@
    comments=allComments||[];likes=allLikes||[];loaded=p;
    paint(p);
   }catch(err){status('Comentários indisponíveis: '+err.message)}
+  finally{
+   loading=false;
+   if(refreshAgain){refreshAgain=false;if(accessGranted&&box())loadSocial()}
+  }
  }
+
  function paint(p){
   if(!box()||who()!==p)return;
   const canWrite=!!currentMember?.write;
@@ -95,4 +102,10 @@
   loadSocial();
  };
  window.bmwResultSocialRefresh=loadSocial;
+ const canAutoRefresh=()=>{
+  const view=document.getElementById('professional');
+  return document.visibilityState==='visible'&&accessGranted&&!!box()&&!!view&&!view.classList.contains('hidden')&&!document.activeElement?.closest('#socialCommentForm');
+ };
+ window.setInterval(()=>{if(canAutoRefresh())loadSocial()},30000);
+ document.addEventListener('visibilitychange',()=>{if(canAutoRefresh())loadSocial()});
 })();

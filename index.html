@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"><meta name="arena-build" content="arena-x1-v61"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8"><meta name="arena-build" content="arena-x1-v62"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0a1423"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="ARENA X1">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icon.svg">
 <title>ARENA X1 · Competição 2026</title>
@@ -109,7 +109,7 @@ body.bmw-authorized #bmwGate{display:none!important}
 <p><b>Entre na competição.</b> Gestores entram diretamente com suas contas. Os demais profissionais precisam de aprovação de Raphael ou Luis.</p>
 <div id="bmwGateTopMessage" role="status" aria-live="polite" style="display:none;padding:12px;margin:12px 0;border:1px solid #d9a65a;border-radius:10px;color:#ffe0a0;background:#27354b;font-weight:700"></div><form id="bmwGateForm" novalidate><label for="bmwGateEmail">Seu e-mail</label><input id="bmwGateEmail" type="email" autocomplete="email" placeholder="seuemail@exemplo.com" required>
 <label for="bmwGatePassword">Sua senha</label><div style="display:flex;align-items:center;gap:8px"><input id="bmwGatePassword" type="password" style="flex:1;min-width:0" autocomplete="current-password" placeholder="Senha individual" required><button type="button" class="bmw-password-toggle" data-target="bmwGatePassword" aria-label="Mostrar senha" aria-pressed="false" style="flex:none;padding:10px 12px;border:1px solid #7b8da6;border-radius:8px;background:#27354b;color:#fff;cursor:pointer">Mostrar</button></div><div id="bmwGateConfirmWrap" style="display:none"><label for="bmwGateConfirm">Confirme sua senha</label><div style="display:flex;align-items:center;gap:8px"><input id="bmwGateConfirm" type="password" style="flex:1;min-width:0" minlength="8" autocomplete="new-password" placeholder="Repita a senha"><button type="button" class="bmw-password-toggle" data-target="bmwGateConfirm" aria-label="Mostrar senha" aria-pressed="false" style="flex:none;padding:10px 12px;border:1px solid #7b8da6;border-radius:8px;background:#27354b;color:#fff;cursor:pointer">Mostrar</button></div></div>
-<div class="bmw-gate-actions"><button class="bmw-gate-btn primary" type="submit" id="bmwGateEnter" onclick="var m=document.getElementById('bmwGateTopMessage');m.style.display='block';m.textContent='Botão acionado. Validando o formulário e a conexão...';">Entrar</button><button class="bmw-gate-btn" type="button" id="bmwGateSignup">Criar conta</button><button class="bmw-gate-btn" type="button" id="bmwGateReset">Recuperar senha</button></div></form>
+<div class="bmw-gate-actions"><button class="bmw-gate-btn primary" type="submit" id="bmwGateEnter" onclick="var m=document.getElementById('bmwGateTopMessage');m.style.display='block';m.textContent='Botão acionado. Validando o formulário e a conexão...';">Entrar</button><button class="bmw-gate-btn" type="button" id="bmwGateSignup">Criar conta</button><button class="bmw-gate-btn" type="button" id="bmwGateReset">Recuperar senha</button><button class="bmw-gate-btn" type="button" id="bmwGateResend">Reenviar confirmação</button></div></form>
 <p>Quem já possui uma conta de gestor pode entrar usando o e-mail e a senha cadastrados.</p>
 </div>
 <div id="bmwGateRequest"><h2>Solicitar aprovação</h2><p id="bmwGateAccount"></p><label for="bmwGateProfessional">Selecione seu nome na equipe</label><select id="bmwGateProfessional"></select>
@@ -327,7 +327,7 @@ document.getElementById('saveBtn').onclick=save;document.getElementById('reloadB
 document.getElementById('installBtn').onclick=()=>{if(window.installPrompt){window.installPrompt.prompt();window.installPrompt=null}else alert('Android: Chrome → menu ⋮ → Instalar app. iPhone: Safari → Compartilhar → Adicionar à Tela de Início.')};
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.installPrompt=e});
 menu();
-if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=61',{updateViaCache:'none'}).then(w=>w.update()).catch(()=>{}));
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=62',{updateViaCache:'none'}).then(w=>w.update()).catch(()=>{}));
 
 </script>
 <script>
@@ -350,9 +350,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 <script src='./bonus-breakdown.js'></script>
 <script src='./arena.js?v=emoji-v1'></script>
 <script src='./rules-cards.js?v=rules3'></script>
-<script src='./auth-gate.js?v=active-request-guard-v2'></script>
+<script src='./auth-gate.js?v=confirmation-resend-v1'></script>
 
-<script src='./result-social.js?v=social3'></script>
+<script src='./result-social.js?v=social-refresh-v1'></script>
 <script src='./add-professional.js?v=add2'></script>
 <script>document.addEventListener('click',function(e){var b=e.target.closest('.bmw-password-toggle');if(!b)return;var field=document.getElementById(b.dataset.target);if(!field)return;var visible=field.type==='password';field.type=visible?'text':'password';b.textContent=visible?'Ocultar':'Mostrar';b.setAttribute('aria-label',visible?'Ocultar senha':'Mostrar senha');b.setAttribute('aria-pressed',String(visible));});</script>
 </body>
