@@ -22,10 +22,17 @@ let signupRequests = 0;
 
 await context.addInitScript(() => {
   window.__auditBlockedWrites = [];
+  window.__auditResendCalls = [];
   const originalFetch = window.fetch.bind(window);
   window.fetch = (input, init = {}) => {
     const url = typeof input === 'string' ? input : input?.url || String(input);
     const method = String(init.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
+    if (url.includes('veznreiamwstlulkpocz.supabase.co') && method === 'POST' && url.includes('/auth/v1/resend')) {
+      let body = {};
+      try { body = JSON.parse(init.body || '{}'); } catch {}
+      window.__auditResendCalls.push({ url, body });
+      return Promise.resolve(new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } }));
+    }
     if (url.includes('veznreiamwstlulkpocz.supabase.co') && !['GET', 'HEAD', 'OPTIONS'].includes(method)) {
       window.__auditBlockedWrites.push({ method, url });
       return Promise.reject(new Error('Blocked by read-only browser audit'));
@@ -178,6 +185,40 @@ try {
   assert.deepEqual(unsafeRequests, [], 'Browser audit must not send write requests to production');
   const blockedWrites = await page.evaluate(() => window.__auditBlockedWrites || []);
   assert.deepEqual(blockedWrites, [], 'No production writes should be attempted by this smoke test');
+
+  // Test the new confirmation-resend UI with a mocked Auth response; never send an email in production.
+  await page.locator('#bmwGateSignup').click(); // return to login mode
+  await page.locator('#bmwGateEmail').fill('not-an-email');
+  await page.locator('#bmwGateResend').click();
+  await page.waitForFunction(
+    () => document.getElementById('bmwGateMessage')?.textContent.includes('Digite um e-mail válido'),
+    null,
+    { timeout: 5000 }
+  );
+  assert.deepEqual(await page.evaluate(() => window.__auditResendCalls), [], 'Invalid email must not call Auth resend');
+  await page.locator('#bmwGateEmail').fill('browser-audit@example.invalid');
+  await page.locator('#bmwGateResend').click();
+  await page.waitForFunction(
+    () => document.getElementById('bmwGateMessage')?.textContent.includes('Se a conta existir e ainda não estiver confirmada'),
+    null,
+    { timeout: 5000 }
+  );
+  const resendState = await page.evaluate(() => ({
+    calls: window.__auditResendCalls || [],
+    disabled: document.getElementById('bmwGateResend')?.disabled,
+    message: document.getElementById('bmwGateMessage')?.textContent || ''
+  }));
+  assert.equal(resendState.calls.length, 1, 'Confirmation resend must issue exactly one mocked request');
+  assert.equal(resendState.calls[0].body.type, 'signup', 'Resend must use the signup confirmation flow');
+  assert.equal(resendState.calls[0].body.email, 'browser-audit@example.invalid');
+  assert.equal(resendState.calls[0].body.options.emailRedirectTo, new URL('./', baseUrl).toString());
+  assert.equal(resendState.disabled, true, 'Resend must enforce the 60-second client cooldown');
+  assert.ok(!resendState.message.includes('browser-audit@example.invalid'), 'Resend response must not disclose whether an account exists');
+  await page.locator('#bmwGateSignup').click();
+  assert.equal(await page.locator('#bmwGateResend').isVisible(), false, 'Resend control must be hidden during signup mode');
+  await page.locator('#bmwGateSignup').click();
+  assert.equal(await page.locator('#bmwGateResend').isVisible(), true, 'Resend control must be available in login mode');
+  console.log('BMW X1 confirmation-resend UI PASS: mocked Auth request, generic response, email validation and cooldown; no production email sent.');
 
   for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }]) {
     await page.setViewportSize(viewport);
