@@ -303,6 +303,12 @@ try {
       serviceWorkers: 'block'
     });
     await mockContext.addInitScript(mode => {
+      window.__auditIntervals = [];
+      const realSetInterval = window.setInterval.bind(window);
+      window.setInterval = (callback, delay, ...args) => {
+        if (delay === 30000) window.__auditIntervals.push(callback);
+        return realSetInterval(callback, delay, ...args);
+      };
       const adminMode = mode === 'admin-raphael' || mode === 'admin-luis';
       const currentId = '11111111-1111-4111-8111-111111111111';
       const approvedId = '33333333-3333-4333-8333-333333333333';
@@ -753,6 +759,11 @@ try {
           );
         }
         console.log('Authenticated Mural responsive: PASS at 390px and 768px.');
+        const authenticatedDuplicateIds = await mockPage.locator('[id]').evaluateAll(nodes => {
+          const ids = nodes.map(node => node.id).filter(Boolean);
+          return [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
+        });
+        assert.deepEqual(authenticatedDuplicateIds, [], 'Authenticated Mural DOM must not contain duplicate IDs');
         await mockPage.locator('[data-arena-view="posts"]').click();
         await mockPage.locator('#arenaPostCategory').selectOption('desafio');
         const emojiField = mockPage.locator('#arenaPostText');
@@ -829,6 +840,25 @@ try {
           null,
           { timeout: 10000 }
         );
+        const socialReadsBeforeAutoRefresh = await mockPage.evaluate(() =>
+          window.__mockState.writes.filter(item => item.method === 'GET' &&
+            (item.path.includes('bmw_x1_result_comments') || item.path.includes('bmw_x1_result_likes'))).length
+        );
+        const hasAutoRefreshTimer = await mockPage.evaluate(() => (window.__auditIntervals || []).length > 0);
+        assert.ok(hasAutoRefreshTimer, 'Results social must register its 30-second refresh timer');
+        await mockPage.evaluate(() => window.__auditIntervals[0]());
+        await mockPage.waitForFunction(before =>
+          window.__mockState.writes.filter(item => item.method === 'GET' &&
+            (item.path.includes('bmw_x1_result_comments') || item.path.includes('bmw_x1_result_likes'))).length > before,
+          socialReadsBeforeAutoRefresh,
+          { timeout: 5000 }
+        );
+        console.log('BMW X1 results social auto-refresh PASS: mocked timer refreshed comments/likes while the tab was visible.');
+        const resultDuplicateIds = await mockPage.locator('[id]').evaluateAll(nodes => {
+          const ids = nodes.map(node => node.id).filter(Boolean);
+          return [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
+        });
+        assert.deepEqual(resultDuplicateIds, [], 'Results social DOM must not contain duplicate IDs');
         await mockPage.locator('#socialLike').click();
         await mockPage.waitForFunction(
           () => window.__mockState.resultLikes.length === 1 &&
